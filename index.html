@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Estantería">
+<title>Gestión de Estantería</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;background:#EFEDE6;color:#1a1a1a;}
+#root{height:100dvh;height:100vh;display:flex;flex-direction:column;}
+#hdr{background:#1C1C1E;color:#fff;padding:12px 20px 10px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
+#hdr-l{flex:1;}
+.hpre{font-size:10px;color:#888;letter-spacing:.12em;font-weight:600;}
+.hsub{font-size:13px;color:#aaa;margin-top:3px;}
+#hdr-r{text-align:right;}
+.hsl{font-size:10px;color:#666;letter-spacing:.08em;}
+#hsv{font-size:26px;font-weight:800;color:#F0C040;line-height:1;font-variant-numeric:tabular-nums;}
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:86px;}
+#nav{position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:1px solid #DDD;display:flex;padding-bottom:env(safe-area-inset-bottom,0);}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;font-size:10px;color:#AAA;cursor:pointer;font-family:inherit;padding:0;}
+.nt.on{color:#C48A00;}
+.nt svg{width:22px;height:22px;stroke-width:1.8;}
+.nt.on svg{stroke-width:2.4;}
+.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid #E4E2DB;}
+.mets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.met{background:#EFEDE6;border-radius:12px;padding:14px 16px;}
+.met-l{font-size:11px;color:#888;margin-bottom:4px;font-weight:500;}
+.met-v{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+.fg{margin-bottom:14px;}
+label.fl{font-size:12px;color:#666;display:block;margin-bottom:7px;font-weight:600;}
+input,select{width:100%;height:54px;border:1.5px solid #DDD;border-radius:12px;padding:0 16px;font-size:16px;font-family:inherit;background:#fff;color:#1a1a1a;-webkit-appearance:none;appearance:none;outline:none;}
+input:focus,select:focus{border-color:#C48A00;box-shadow:0 0 0 3px rgba(196,138,0,.12);}
+.btn{height:54px;border-radius:13px;border:none;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .12s,transform .1s;}
+.btn:active{opacity:.8;transform:scale(.99);}
+.btn-blk{background:#1C1C1E;color:#fff;}
+.btn-out{background:#EFEDE6;color:#1a1a1a;border:1.5px solid #DDD;}
+.btn-grn{background:#D4EDD4;color:#145214;border:1.5px solid #90C890;}
+.btn-red{background:#FFE8E8;color:#991111;border:1.5px solid #FFB0B0;}
+.btn-sm{height:40px;font-size:13px;border-radius:10px;padding:0 16px;width:auto;}
+.fmt-row{display:flex;gap:10px;}
+.fmtb{flex:1;height:72px;border-radius:13px;border:2.5px solid #DDD;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-family:inherit;transition:border-color .12s,background .12s;}
+.fmtb.on-A{border-color:#1A3A99;background:#ECF0FF;}
+.fmtb.on-B{border-color:#994400;background:#FFF3E8;}
+.fmtb.on-X{border-color:#2A7A2A;background:#E8F5E8;}
+.fmtbig{font-size:24px;font-weight:900;}
+.fmtsub{font-size:11px;color:#888;}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.pA{background:#ECF0FF;color:#1A3A99;}.pB{background:#FFF3E8;color:#994400;}.pX{background:#E8F5E8;color:#2A7A2A;}
+.srow{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #F0EDE8;}
+.srow:last-child{border-bottom:none;}
+.sname{flex:1;font-size:15px;font-weight:500;}
+.sqty{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;}
+.arow{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:12px;margin-bottom:8px;}
+.ain{background:#D4EDD4;}.aout{background:#FFE8E8;}.awrn{background:#FFF8E0;}
+.apos{font-family:monospace;font-size:18px;font-weight:900;}
+.aqty{font-size:15px;font-weight:700;}
+.lrow{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #F0EDE8;}
+.lrow:last-child{border-bottom:none;}
+.lid{font-family:monospace;font-size:17px;font-weight:900;min-width:68px;}
+.ldesc{flex:1;font-size:13px;color:#888;}
+.lqty{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
+.lpct{font-size:11px;color:#AAA;min-width:34px;text-align:right;}
+.rack-fmt{margin-bottom:22px;}
+.rack-ftitle{font-size:11px;font-weight:800;letter-spacing:.12em;margin-bottom:10px;padding:6px 12px;border-radius:8px;display:inline-block;}
+.rftA{background:#ECF0FF;color:#1A3A99;}.rftB{background:#FFF3E8;color:#994400;}.rftX{background:#E8F5E8;color:#2A7A2A;}
+.rack-cols{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+.rcol{flex-shrink:0;}
+.rclabel{font-size:11px;font-weight:700;color:#888;text-align:center;margin-bottom:5px;}
+.rcell{border-radius:10px;padding:8px 7px;border:1.5px solid;margin-bottom:5px;width:84px;min-height:66px;}
+.rce{background:#EFEDE6;border-color:#D4D2CC;}
+.rcp{background:#FFF8D8;border-color:#D4A800;}
+.rcf{background:#D4EDD4;border-color:#5A9A5A;}
+.rcid{font-size:9px;font-family:monospace;font-weight:800;color:#888;}
+.rcqty{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;}
+.rcnm{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
+.rcbar{height:3px;border-radius:2px;background:#DDD;margin-top:5px;overflow:hidden;}
+.rcbp{height:100%;border-radius:2px;background:#D4A800;}
+.rcbf{height:100%;border-radius:2px;background:#5A9A5A;}
+.alert{padding:13px 16px;border-radius:12px;font-size:14px;margin-bottom:12px;font-weight:500;}
+.aok{background:#D4EDD4;color:#145214;}.aerr{background:#FFE8E8;color:#991111;}.awrn{background:#FFF8D8;color:#7A5200;}
+.sec{font-size:11px;font-weight:800;letter-spacing:.1em;color:#888;margin-bottom:10px;text-transform:uppercase;}
+.dhr{border:none;border-top:1px solid #EEEAE4;margin:16px 0;}
+.empty{text-align:center;padding:48px 20px;}
+.eico{font-size:52px;margin-bottom:14px;}
+.empty p{font-size:16px;color:#999;margin-bottom:6px;}
+.empty small{font-size:13px;color:#BBB;display:block;margin-bottom:20px;}
+.spin{width:32px;height:32px;border:3px solid #EEE;border-top-color:#C48A00;border-radius:50%;animation:sp .7s linear infinite;margin:40px auto;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hrow{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #F0EDE8;}
+.hrow:last-child{border-bottom:none;}
+.htag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;}
+.htin{background:#D4EDD4;color:#145214;}.htout{background:#FFE8E8;color:#991111;}
+.hinfo{flex:1;}
+.hinm{font-size:14px;font-weight:500;}
+.hipos{font-size:12px;color:#AAA;margin-top:1px;}
+.hqty{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;}
+.hdate{font-size:11px;color:#BBB;min-width:56px;text-align:right;}
+</style>
+</head>
+<body>
+<div id="root">
+  <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#EFEDE6;">
+    <div class="spin"></div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let A={
+  loading:false,
+  types:[],positions:[],stock:[],hist:[],
+  view:'dashboard',msg:null,prev:null,sr:null,selFmt:'A'
+};
+
+// ═══════════════════════════════════════════════
+//  API
+// ═══════════════════════════════════════════════
+async function api(method, path, body){
+  const opts={method, headers:{'Content-Type':'application/json'}};
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(path,opts);
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.error||'Error del servidor');
+  return d;
+}
+
+async function loadAll(){
+  A.loading=true; render();
+  try{
+    const d=await api('GET','/api/data');
+    A.types=d.types; A.positions=d.positions; A.stock=d.stock; A.hist=d.movements;
+  }catch(e){ A.msg={text:'Error de conexión: '+e.message,t:'err'}; }
+  A.loading=false; render();
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function posUsed(p){return A.stock.filter(s=>s.position_id===p.id).reduce((n,s)=>n+s.quantity,0);}
+function posFree(p){return p.capacity-posUsed(p);}
+function getQty(pid,tid){return(A.stock.find(s=>s.position_id===pid&&s.plate_type_id===tid)||{}).quantity||0;}
+function typeTotal(tid){return A.stock.filter(s=>s.plate_type_id===tid).reduce((n,s)=>n+s.quantity,0);}
+function tname(tid){return(A.types.find(t=>t.id===tid)||{}).name||'?';}
+function tfmt(tid){return(A.types.find(t=>t.id===tid)||{}).format||'A';}
+function totalStock(){return A.stock.reduce((n,s)=>n+s.quantity,0);}
+function usedPos(){return new Set(A.stock.map(s=>s.position_id)).size;}
+function fmtDim(f){return f==='A'?'122 cm':f==='B'?'180 cm':'Especial';}
+function pcls(f){return 'pill p'+f;}
+function fmtCol(f){return f==='A'?'#1A3A99':f==='B'?'#994400':'#2A7A2A';}
+
+// ═══════════════════════════════════════════════
+//  AUTO-ASSIGN
+// ═══════════════════════════════════════════════
+function autoAssign(tid,qty){
+  const fmt=tfmt(tid); let rem=qty,assigns=[];
+  const existing=A.positions
+    .filter(p=>p.format===fmt&&getQty(p.id,tid)>0&&posFree(p)>0)
+    .sort((a,b)=>posUsed(b)-posUsed(a));
+  for(const p of existing){if(rem<=0)break;const q=Math.min(posFree(p),rem);assigns.push({pos:p,qty:q});rem-=q;}
+  if(rem>0){
+    const empty=A.positions.filter(p=>p.format===fmt&&posUsed(p)===0).sort((a,b)=>a.id.localeCompare(b.id));
+    for(const p of empty){if(rem<=0)break;const q=Math.min(p.capacity,rem);assigns.push({pos:p,qty:q});rem-=q;}
+  }
+  return{assigns,overflow:rem};
+}
+
+function autoWithdraw(tid,qty){
+  let rem=qty,assigns=[];
+  const ps=A.positions
+    .filter(p=>getQty(p.id,tid)>0)
+    .sort((a,b)=>getQty(a.id,tid)-getQty(b.id,tid));
+  for(const p of ps){if(rem<=0)break;const cur=getQty(p.id,tid);const q=Math.min(cur,rem);assigns.push({pos:p,qty:q,remaining:cur-q});rem-=q;}
+  return{assigns,shortfall:rem};
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════
+function render(){
+  const root=document.getElementById('root');
+  if(!root)return;
+  if(A.loading){
+    root.innerHTML=`<div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#EFEDE6;"><div class="spin"></div><p style="color:#888;font-size:14px;margin-top:16px;">Cargando...</p></div>`;
+    return;
+  }
+  const views={dashboard:vDash,estanteria:vRack,ingresar:vIn,buscar:vSearch,baja:vBaja,historial:vHist};
+  const nav=[
+    ['dashboard','Resumen','<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+    ['estanteria','Estantería','<rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>'],
+    ['ingresar','Ingresar','<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'],
+    ['buscar','Buscar','<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'],
+    ['baja','Dar de baja','<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'],
+    ['historial','Historial','<polyline points="12 8 12 12 14 14"/><circle cx="12" cy="12" r="10"/>']
+  ];
+  const up=usedPos(),tp=A.positions.length;
+  root.innerHTML=`
+  <div id="hdr">
+    <div id="hdr-l">
+      <div class="hpre">ESTANTERÍA MADERABLE</div>
+      <div class="hsub">${up} / ${tp} posiciones ocupadas</div>
+    </div>
+    <div id="hdr-r"><div class="hsl">EN STOCK</div><div id="hsv">${totalStock()}</div></div>
+  </div>
+  <div id="content">
+    ${A.msg?`<div class="alert ${A.msg.t==='ok'?'aok':A.msg.t==='warn'?'awrn':'aerr'}">${A.msg.text}</div>`:''}
+    ${(views[A.view]||vDash)()}
+  </div>
+  <nav id="nav">
+    ${nav.map(([v,l,svg])=>`<button class="nt${A.view===v?' on':''}" onclick="SV('${v}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${svg}</svg>${l}</button>`).join('')}
+  </nav>`;
+  initFmtBtns();
+}
+
+// ═══════════════════════════════════════════════
+//  VIEWS
+// ═══════════════════════════════════════════════
+function vDash(){
+  const tot=totalStock(),up=usedPos(),fp=A.positions.length-up;
+  const cnt=f=>new Set(A.stock.filter(s=>{const p=A.positions.find(x=>x.id===s.position_id);return p&&p.format===f;}).map(s=>s.position_id)).size;
+  const tot2=f=>A.positions.filter(p=>p.format===f).length;
+  return`<div class="mets">
+    <div class="met"><div class="met-l">Total en stock</div><div class="met-v">${tot}</div></div>
+    <div class="met"><div class="met-l">Tipos de placa</div><div class="met-v">${A.types.length}</div></div>
+    <div class="met"><div class="met-l" style="color:#B87000;">Posiciones ocupadas</div><div class="met-v" style="color:#B87000;">${up}</div></div>
+    <div class="met"><div class="met-l" style="color:#2a7a2a;">Posiciones libres</div><div class="met-v" style="color:#2a7a2a;">${fp}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+    <div class="met" style="background:#ECF0FF;"><div class="met-l" style="color:#1A3A99;">A · 122cm</div><div class="met-v" style="color:#1A3A99;">${cnt('A')}<span style="font-size:14px;font-weight:500;"> / ${tot2('A')}</span></div></div>
+    <div class="met" style="background:#FFF3E8;"><div class="met-l" style="color:#994400;">B · 180cm</div><div class="met-v" style="color:#994400;">${cnt('B')}<span style="font-size:14px;font-weight:500;"> / ${tot2('B')}</span></div></div>
+    <div class="met" style="background:#E8F5E8;"><div class="met-l" style="color:#2A7A2A;">Especial</div><div class="met-v" style="color:#2A7A2A;">${cnt('X')}<span style="font-size:14px;font-weight:500;"> / ${tot2('X')}</span></div></div>
+  </div>
+  ${A.types.length===0
+    ?`<div class="empty"><div class="eico">📦</div><p>Sin placas registradas</p><small>Empezá desde "Ingresar"</small><button class="btn btn-blk" style="max-width:200px;margin:0 auto;" onclick="SV('ingresar')">Ir a Ingresar →</button></div>`
+    :`<div class="sec">Stock por tipo</div>
+      <div class="card" style="padding:4px 18px;">
+        ${A.types.map(t=>{const st=typeTotal(t.id),locs=new Set(A.stock.filter(s=>s.plate_type_id===t.id).map(s=>s.position_id)).size;
+          return`<div class="srow"><span class="${pcls(t.format)}">${t.format}</span><span class="sname">${t.name}</span><span class="sqty">${st}</span><span style="font-size:11px;color:#BBB;min-width:48px;text-align:right;">${locs} pos.</span></div>`;}).join('')}
+      </div>`}
+  <div style="text-align:right;margin-top:8px;"><button class="btn btn-out btn-sm" onclick="loadAll()">↺ Actualizar</button></div>`;
+}
+
+function vRack(){
+  const fmts=[{f:'A',t:'FORMATO A — 122 cm',c:'rftA'},{f:'B',t:'FORMATO B — 180 cm',c:'rftB'},{f:'X',t:'COLUMNA ESPECIAL — 150 cap',c:'rftX'}];
+  return fmts.map(({f,t,c})=>{
+    const cols=[...new Set(A.positions.filter(p=>p.format===f).map(p=>p.column_id))].sort();
+    if(!cols.length)return'';
+    return`<div class="rack-fmt">
+      <div class="rack-ftitle ${c}">${t}</div>
+      <div class="rack-cols">
+        ${cols.map(col=>{
+          const levels=A.positions.filter(p=>p.column_id===col).sort((a,b)=>(b.level||0)-(a.level||0));
+          return`<div class="rcol">
+            <div class="rclabel">${col}</div>
+            ${levels.map(p=>{
+              const u=posUsed(p),cap=p.capacity,pct=cap>0?u/cap:0;
+              const cls=u===0?'rce':pct>=1?'rcf':'rcp';
+              const items=A.stock.filter(s=>s.position_id===p.id);
+              const bp=Math.min(100,Math.round(pct*100));
+              return`<div class="rcell ${cls}" title="${p.id}: ${u}/${cap} uds&#10;${items.map(i=>tname(i.plate_type_id)+': '+i.quantity).join('\n')||'Vacía'}">
+                <div class="rcid">${p.id}${p.level?' N'+p.level:''}</div>
+                ${u>0?`<div class="rcqty">${u}</div><div class="rcnm">${items.map(i=>tname(i.plate_type_id)).join(', ')}</div>`:'<div style="height:24px;"></div>'}
+                <div class="rcbar"><div class="${pct>=1?'rcbf':'rcbp'}" style="width:${bp}%;height:3px;border-radius:2px;"></div></div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function vIn(){
+  return`<div>
+  <div class="card">
+    <div class="sec">Nuevo tipo de placa</div>
+    <div class="fg"><label class="fl">Nombre / descripción</label><input id="ntn" placeholder="Ej: MDF 18mm, Melamina blanca 25mm..." /></div>
+    <div class="fg">
+      <label class="fl">Formato de estantería</label>
+      <div class="fmt-row">
+        <button class="fmtb" id="fbA" onclick="selFmt('A')"><span class="fmtbig" style="color:#1A3A99;">A</span><span class="fmtsub">122 cm</span></button>
+        <button class="fmtb" id="fbB" onclick="selFmt('B')"><span class="fmtbig" style="color:#994400;">B</span><span class="fmtsub">180 cm</span></button>
+        <button class="fmtb" id="fbX" onclick="selFmt('X')"><span class="fmtbig" style="color:#2A7A2A;">X</span><span class="fmtsub">Especial</span></button>
+      </div>
+    </div>
+    <button class="btn btn-out" onclick="doAddType()">+ Agregar tipo de placa</button>
+  </div>
+  ${A.types.length>0?`
+  <div class="card">
+    <div class="sec">Registrar ingreso</div>
+    <div class="fg"><label class="fl">Tipo de placa</label>
+      <select id="inTid">${A.types.map(t=>`<option value="${t.id}">[${t.format}] ${t.name} — stock: ${typeTotal(t.id)}</option>`).join('')}</select>
+    </div>
+    <div class="fg"><label class="fl">Cantidad que llega</label><input id="inQty" type="number" min="1" inputmode="numeric" placeholder="0" /></div>
+    <button class="btn btn-blk" onclick="doPrevIn()">Ver dónde guardar →</button>
+    ${A.prev&&A.prev.type==='in'?prevInH():''}
+  </div>`:``}
+  </div>`;
+}
+
+function prevInH(){
+  const p=A.prev,f=tfmt(p.tid),col=fmtCol(f);
+  return`<hr class="dhr">
+  <div class="sec">Guardar ${p.qty} uds de <span style="color:${col};">${tname(p.tid)}</span> <span class="${pcls(f)}">${f}</span></div>
+  ${p.assigns.map(a=>`<div class="arow ain">
+    <div><div class="apos" style="color:#145214;">${a.pos.id}</div><div style="font-size:12px;color:#2a7a2a;margin-top:2px;">${fmtDim(a.pos.format)}</div></div>
+    <span class="aqty" style="color:#145214;">+ ${a.qty} uds</span>
+  </div>`).join('')}
+  ${p.overflow>0?`<div class="arow awrn"><span style="color:#7A5200;">Sin espacio para ${p.overflow} uds en Formato ${f}.</span></div>`:''}
+  ${p.assigns.length>0?`<button class="btn btn-grn" style="margin-top:10px;" onclick="doConfIn()">✓ Confirmar ingreso</button>`:''}`;
+}
+
+function vSearch(){
+  return`<div>
+  <div class="card">
+    <div class="sec">Buscar placa</div>
+    <div class="fg"><label class="fl">Tipo de placa</label>
+      <select id="sTid"><option value="">— Seleccionar —</option>${A.types.map(t=>`<option value="${t.id}">[${t.format}] ${t.name}</option>`).join('')}</select>
+    </div>
+    <button class="btn btn-blk" onclick="doSearch()">Buscar</button>
+  </div>
+  ${A.sr!==null?srH():''}
+  </div>`;
+}
+
+function srH(){
+  const tid=A.sr,tot=typeTotal(tid),f=tfmt(tid),col=fmtCol(f);
+  const locs=A.positions.filter(p=>getQty(p.id,tid)>0);
+  return`<div class="card">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #F0EDE8;">
+    <span class="${pcls(f)}">${f}</span>
+    <span style="flex:1;font-size:17px;font-weight:700;">${tname(tid)}</span>
+    <span style="font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;">${tot}</span>
+  </div>
+  ${locs.length===0?`<p style="color:#BBB;text-align:center;padding:14px 0;font-size:14px;">Sin stock en estantería.</p>`:
+  locs.map(p=>{const q=getQty(p.id,tid),pct=Math.round(q/p.capacity*100);
+    return`<div class="lrow"><span class="lid">${p.id}</span><span class="ldesc">Col. ${p.column_id}${p.level?' · Nivel '+p.level:''}</span><span class="lqty">${q}</span><span class="lpct">${pct}%</span></div>`;
+  }).join('')}
+  </div>`;
+}
+
+function vBaja(){
+  const avail=A.types.filter(t=>typeTotal(t.id)>0);
+  return`<div>
+  ${!avail.length?`<div class="empty"><div class="eico">🔄</div><p>Sin stock disponible</p><small>Ingresá placas primero.</small></div>`:`
+  <div class="card">
+    <div class="sec">Retirar placas del stock</div>
+    <div class="fg"><label class="fl">Tipo de placa</label>
+      <select id="bTid">${avail.map(t=>`<option value="${t.id}">[${t.format}] ${t.name} — stock: ${typeTotal(t.id)}</option>`).join('')}</select>
+    </div>
+    <div class="fg"><label class="fl">Cantidad a retirar</label><input id="bQty" type="number" min="1" inputmode="numeric" placeholder="0" /></div>
+    <button class="btn btn-red" onclick="doPrevOut()">Ver de dónde retirar →</button>
+    ${A.prev&&A.prev.type==='out'?prevOutH():''}
+  </div>`}
+  </div>`;
+}
+
+function prevOutH(){
+  const p=A.prev;
+  return`<hr class="dhr">
+  <div class="sec">Retirar ${p.qty} uds de ${tname(p.tid)} desde:</div>
+  ${p.assigns.map(a=>`<div class="arow aout">
+    <div><div class="apos" style="color:#991111;">${a.pos.id}</div><div style="font-size:12px;color:#cc4444;margin-top:2px;">${a.remaining>0?'Quedan '+a.remaining+' uds':'Posición queda vacía'}</div></div>
+    <span class="aqty" style="color:#991111;">− ${a.qty} uds</span>
+  </div>`).join('')}
+  ${p.shortfall>0?`<div class="arow awrn"><span style="color:#7A5200;">Stock insuficiente. Faltan ${p.shortfall} uds.</span></div>`:''}
+  ${p.shortfall===0?`<button class="btn btn-red" style="margin-top:10px;" onclick="doConfOut()">✓ Confirmar baja</button>`:''}`;
+}
+
+function vHist(){
+  if(!A.hist.length)return`<div class="empty"><div class="eico">📋</div><p>Sin movimientos aún</p></div>`;
+  const fd=d=>{const dt=new Date(d);return dt.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit'})+' '+dt.toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'});};
+  return`<div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div class="sec" style="margin:0;">Últimos movimientos</div>
+    <button class="btn btn-out btn-sm" onclick="loadAll()">↺ Actualizar</button>
+  </div>
+  <div class="card" style="padding:4px 18px;">
+    ${A.hist.map(m=>`<div class="hrow">
+      <span class="htag ${m.movement_type==='ingreso'?'htin':'htout'}">${m.movement_type==='ingreso'?'+':'−'}</span>
+      <div class="hinfo"><div class="hinm">${tname(m.plate_type_id)}</div><div class="hipos">${m.position_id}</div></div>
+      <span class="hqty">${m.quantity}</span>
+      <span class="hdate">${fd(m.created_at)}</span>
+    </div>`).join('')}
+  </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  HANDLERS
+// ═══════════════════════════════════════════════
+function initFmtBtns(){
+  ['A','B','X'].forEach(f=>{const el=document.getElementById('fb'+f);if(el)el.className='fmtb'+(A.selFmt===f?' on-'+f:'');});
+}
+
+window.selFmt=function(f){A.selFmt=f;initFmtBtns();};
+window.SV=function(v){A.view=v;A.msg=null;A.prev=null;A.sr=null;render();};
+
+window.doAddType=async function(){
+  const n=document.getElementById('ntn')?.value?.trim();
+  if(!n){A.msg={text:'Ingresá un nombre.',t:'err'};render();return;}
+  A.loading=true;render();
+  try{
+    await api('POST','/api/types',{name:n,format:A.selFmt});
+    await loadAll();
+    A.msg={text:`✓ Tipo "${n}" (Formato ${A.selFmt} · ${fmtDim(A.selFmt)}) agregado.`,t:'ok'};
+    A.view='ingresar';
+  }catch(e){A.msg={text:'Error: '+e.message,t:'err'};}
+  A.loading=false;render();
+};
+
+window.doPrevIn=function(){
+  const tid=parseInt(document.getElementById('inTid')?.value);
+  const qty=parseInt(document.getElementById('inQty')?.value);
+  if(!tid||!qty||qty<1){A.msg={text:'Seleccioná tipo e ingresá cantidad válida.',t:'err'};render();return;}
+  const{assigns,overflow}=autoAssign(tid,qty);
+  if(!assigns.length&&overflow>0){A.msg={text:'Sin espacio disponible para ese formato.',t:'err'};render();return;}
+  A.prev={type:'in',tid,qty,assigns,overflow};A.msg=null;render();
+  setTimeout(()=>{const c=document.getElementById('content');if(c)c.scrollTop=9999;},60);
+};
+
+window.doConfIn=async function(){
+  const p=A.prev;if(!p)return;
+  A.loading=true;render();
+  try{
+    await api('POST','/api/ingreso',{tid:p.tid,assigns:p.assigns.map(a=>({posId:a.pos.id,qty:a.qty}))});
+    await loadAll();
+    A.msg={text:`✓ ${p.qty-p.overflow} placas de "${tname(p.tid)}" ingresadas en ${p.assigns.length} posición(es).`,t:'ok'};
+    A.prev=null;
+  }catch(e){A.msg={text:'Error guardando: '+e.message,t:'err'};}
+  A.loading=false;render();
+};
+
+window.doSearch=function(){
+  const tid=parseInt(document.getElementById('sTid')?.value);
+  if(!tid){A.msg={text:'Seleccioná un tipo.',t:'err'};render();return;}
+  A.sr=tid;A.msg=null;render();
+};
+
+window.doPrevOut=function(){
+  const tid=parseInt(document.getElementById('bTid')?.value);
+  const qty=parseInt(document.getElementById('bQty')?.value);
+  if(!tid||!qty||qty<1){A.msg={text:'Seleccioná tipo e ingresá cantidad.',t:'err'};render();return;}
+  const{assigns,shortfall}=autoWithdraw(tid,qty);
+  A.prev={type:'out',tid,qty,assigns,shortfall};A.msg=null;render();
+  setTimeout(()=>{const c=document.getElementById('content');if(c)c.scrollTop=9999;},60);
+};
+
+window.doConfOut=async function(){
+  const p=A.prev;if(!p)return;
+  A.loading=true;render();
+  try{
+    await api('POST','/api/baja',{tid:p.tid,assigns:p.assigns.map(a=>({posId:a.pos.id,qty:a.qty,remaining:a.remaining}))});
+    await loadAll();
+    A.msg={text:`✓ ${p.qty} placas de "${tname(p.tid)}" dadas de baja.`,t:'ok'};
+    A.prev=null;
+  }catch(e){A.msg={text:'Error guardando: '+e.message,t:'err'};}
+  A.loading=false;render();
+};
+
+window.loadAll=loadAll;
+
+// ═══════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════
+loadAll();
+</script>
+</body>
+</html>
