@@ -24,7 +24,7 @@ App de inventario y ubicación de placas, alojada 100% en Vercel.
 2. "Create Database" → elegir "Postgres" → crear (plan gratuito)
 3. Vercel conecta automáticamente la base de datos al proyecto
 
-### 4. Inicializar las tablas (una sola vez)
+### 4. Inicializar las tablas  (una sola vez)
 
 Abrir en el navegador:
 ```
