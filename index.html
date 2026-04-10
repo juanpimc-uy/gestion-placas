@@ -594,7 +594,7 @@ function vInOC(){
 }
 
 async function buscarOC(){
-  const raw=S.ocNum.trim().replace(/^OC-/i,'');
+  const raw=S.ocNum.trim().replace(/^OC-/i,'').replace(/\D/g,'');
   if(!raw){showMsg('Ingresa un número de OC','err');return;}
   const num=raw.padStart(5,'0');
   showMsg('Buscando…','ok');
