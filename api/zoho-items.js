@@ -29,6 +29,6 @@ module.exports = async function handler(req, res) {
     const items = (data.items || []).map(i => ({ item_name: i.name, sku: i.sku || '' }));
     res.json({ items });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, stack: e.stack });
   }
 };
