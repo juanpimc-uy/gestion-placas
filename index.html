@@ -4,124 +4,317 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Estantería">
 <title>Gestión de Estantería</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;background:#EFEDE6;color:#1a1a1a;}
-#root{height:100dvh;height:100vh;display:flex;flex-direction:column;}
-#hdr{background:#1C1C1E;color:#fff;padding:12px 20px 10px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
-#hdr-l{flex:1;}
-.hpre{font-size:10px;color:#888;letter-spacing:.12em;font-weight:600;}
-.hsub{font-size:13px;color:#aaa;margin-top:3px;}
-#hdr-r{text-align:right;}
-.hsl{font-size:10px;color:#666;letter-spacing:.08em;}
-#hsv{font-size:26px;font-weight:800;color:#F0C040;line-height:1;font-variant-numeric:tabular-nums;}
-#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px;padding-bottom:86px;}
-#nav{position:fixed;bottom:0;left:0;right:0;height:66px;background:#fff;border-top:1px solid #DDD;display:flex;padding-bottom:env(safe-area-inset-bottom,0);}
-.nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;font-size:10px;color:#AAA;cursor:pointer;font-family:inherit;padding:0;}
-.nt.on{color:#C48A00;}
-.nt svg{width:22px;height:22px;stroke-width:1.8;}
+html,body{height:100%;overflow:hidden;background:#111111;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;color:#e0e0e0;}
+#root{height:100dvh;height:100vh;display:flex;flex-direction:column;background:#111111;}
+
+/* HEADER */
+#hdr{background:#1e1e1e;color:#fff;padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid #2a2a2a;}
+.hdr-title{font-family:monospace;font-size:12px;letter-spacing:.14em;color:#FFD600;font-weight:700;text-transform:uppercase;}
+.hdr-sub{font-size:11px;color:#666;margin-top:2px;}
+#hdr-stock{font-size:26px;font-weight:800;color:#FFD600;font-variant-numeric:tabular-nums;line-height:1;}
+.gear-btn{background:none;border:none;cursor:pointer;padding:6px;color:#888;display:flex;align-items:center;justify-content:center;}
+.gear-btn:hover{color:#FFD600;}
+.gear-btn svg{width:22px;height:22px;}
+
+/* CONTENT */
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px;padding-bottom:80px;}
+
+/* NAV */
+#nav{position:fixed;bottom:0;left:0;right:0;height:62px;background:#1e1e1e;border-top:1px solid #2a2a2a;display:flex;padding-bottom:env(safe-area-inset-bottom,0);z-index:100;}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;font-size:9px;color:#555;cursor:pointer;font-family:monospace;letter-spacing:.06em;text-transform:uppercase;padding:0;}
+.nt.on{color:#FFD600;}
+.nt svg{width:20px;height:20px;stroke-width:1.8;}
 .nt.on svg{stroke-width:2.4;}
-.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid #E4E2DB;}
-.mets{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.met{background:#EFEDE6;border-radius:12px;padding:14px 16px;}
-.met-l{font-size:11px;color:#888;margin-bottom:4px;font-weight:500;}
-.met-v{font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
-.fg{margin-bottom:14px;}
-label.fl{font-size:12px;color:#666;display:block;margin-bottom:7px;font-weight:600;}
-input,select{width:100%;height:54px;border:1.5px solid #DDD;border-radius:12px;padding:0 16px;font-size:16px;font-family:inherit;background:#fff;color:#1a1a1a;-webkit-appearance:none;appearance:none;outline:none;}
-input:focus,select:focus{border-color:#C48A00;box-shadow:0 0 0 3px rgba(196,138,0,.12);}
-.btn{height:54px;border-radius:13px;border:none;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .12s,transform .1s;}
-.btn:active{opacity:.8;transform:scale(.99);}
-.btn-blk{background:#1C1C1E;color:#fff;}
-.btn-out{background:#EFEDE6;color:#1a1a1a;border:1.5px solid #DDD;}
-.btn-grn{background:#D4EDD4;color:#145214;border:1.5px solid #90C890;}
-.btn-red{background:#FFE8E8;color:#991111;border:1.5px solid #FFB0B0;}
-.btn-sm{height:40px;font-size:13px;border-radius:10px;padding:0 16px;width:auto;}
-.fmt-row{display:flex;gap:10px;}
-.fmtb{flex:1;height:72px;border-radius:13px;border:2.5px solid #DDD;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;font-family:inherit;transition:border-color .12s,background .12s;}
-.fmtb.on-A{border-color:#1A3A99;background:#ECF0FF;}
-.fmtb.on-B{border-color:#994400;background:#FFF3E8;}
-.fmtb.on-X{border-color:#2A7A2A;background:#E8F5E8;}
-.fmtbig{font-size:24px;font-weight:900;}
-.fmtsub{font-size:11px;color:#888;}
-.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
-.pA{background:#ECF0FF;color:#1A3A99;}.pB{background:#FFF3E8;color:#994400;}.pX{background:#E8F5E8;color:#2A7A2A;}
-.srow{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #F0EDE8;}
+
+/* CARDS */
+.card{background:#1e1e1e;border-radius:14px;padding:16px;margin-bottom:10px;border:1px solid #2a2a2a;}
+.card-title{font-family:monospace;font-size:10px;letter-spacing:.12em;color:#888;text-transform:uppercase;margin-bottom:12px;}
+
+/* METRICS */
+.mets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.met{background:#161616;border-radius:10px;padding:12px 14px;border:1px solid #252525;}
+.met-l{font-family:monospace;font-size:9px;letter-spacing:.1em;color:#666;text-transform:uppercase;margin-bottom:4px;}
+.met-v{font-size:28px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:#FFD600;}
+
+/* FORMS */
+.fg{margin-bottom:12px;}
+label.fl{font-family:monospace;font-size:10px;letter-spacing:.1em;color:#888;text-transform:uppercase;display:block;margin-bottom:6px;}
+input,select{width:100%;height:50px;border:1.5px solid #2a2a2a;border-radius:10px;padding:0 14px;font-size:16px;font-family:inherit;background:#161616;color:#e0e0e0;-webkit-appearance:none;appearance:none;outline:none;}
+input:focus,select:focus{border-color:#FFD600;box-shadow:0 0 0 3px rgba(255,214,0,.1);}
+input::placeholder{color:#444;}
+textarea{width:100%;border:1.5px solid #2a2a2a;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;background:#161616;color:#e0e0e0;outline:none;resize:none;}
+textarea:focus{border-color:#FFD600;}
+
+/* BUTTONS */
+.btn{height:50px;border-radius:11px;border:none;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .12s,transform .1s;letter-spacing:.04em;}
+.btn:active{opacity:.75;transform:scale(.99);}
+.btn-y{background:#FFD600;color:#111111;}
+.btn-dk{background:#2a2a2a;color:#e0e0e0;}
+.btn-grn{background:#1a3a1a;color:#44ff44;border:1px solid #44ff44;}
+.btn-red{background:#3a1a1a;color:#ff4444;border:1px solid #ff4444;}
+.btn-sm{height:36px;font-size:12px;border-radius:8px;padding:0 14px;width:auto;letter-spacing:.06em;font-family:monospace;text-transform:uppercase;}
+
+/* PILL */
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;font-family:monospace;text-transform:uppercase;}
+.pA{background:#1a2a4a;color:#6699ff;border:1px solid #2a4a8a;}
+.pB{background:#3a2800;color:#FFD600;border:1px solid #5a4000;}
+
+/* RACK — horizontal layout */
+.rack-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+.rack-floor{display:flex;flex-direction:row;align-items:flex-end;gap:6px;min-width:max-content;padding:8px 2px 4px;}
+.rcol-wrap{display:flex;flex-direction:column;align-items:center;}
+.rclabel{font-family:monospace;font-size:10px;font-weight:700;color:#FFD600;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;text-align:center;}
+.rcol{display:flex;flex-direction:column-reverse;gap:4px;}
+.rcell{border-radius:8px;padding:6px 8px;border:1.5px solid;width:110px;min-height:70px;display:flex;flex-direction:column;justify-content:space-between;}
+.rc-empty{background:#2a2a2a;border-color:#333;}
+.rc-partial{background:#4a3800;border-color:#FFD600;}
+.rc-full{background:#1a3a1a;border-color:#44ff44;}
+.rcid{font-family:monospace;font-size:9px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.08em;}
+.rcqty{font-size:14px;font-weight:800;color:#e0e0e0;font-variant-numeric:tabular-nums;}
+.rcnm{font-size:9px;color:#777;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px;}
+.rcbar{height:3px;border-radius:2px;background:#333;margin-top:5px;overflow:hidden;}
+.rcbp{height:100%;border-radius:2px;background:#FFD600;}
+.rcbf{height:100%;border-radius:2px;background:#44ff44;}
+
+/* STOCK ROWS */
+.srow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #252525;}
 .srow:last-child{border-bottom:none;}
-.sname{flex:1;font-size:15px;font-weight:500;}
-.sqty{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;}
-.arow{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:12px;margin-bottom:8px;}
-.ain{background:#D4EDD4;}.aout{background:#FFE8E8;}.awrn{background:#FFF8E0;}
-.apos{font-family:monospace;font-size:18px;font-weight:900;}
-.aqty{font-size:15px;font-weight:700;}
-.lrow{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px solid #F0EDE8;}
-.lrow:last-child{border-bottom:none;}
-.lid{font-family:monospace;font-size:17px;font-weight:900;min-width:68px;}
-.ldesc{flex:1;font-size:13px;color:#888;}
-.lqty{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;}
-.lpct{font-size:11px;color:#AAA;min-width:34px;text-align:right;}
-.rack-fmt{margin-bottom:22px;}
-.rack-ftitle{font-size:11px;font-weight:800;letter-spacing:.12em;margin-bottom:10px;padding:6px 12px;border-radius:8px;display:inline-block;}
-.rftA{background:#ECF0FF;color:#1A3A99;}.rftB{background:#FFF3E8;color:#994400;}.rftX{background:#E8F5E8;color:#2A7A2A;}
-.rack-cols{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
-.rcol{flex-shrink:0;}
-.rclabel{font-size:11px;font-weight:700;color:#888;text-align:center;margin-bottom:5px;}
-.rcell{border-radius:10px;padding:8px 7px;border:1.5px solid;margin-bottom:5px;width:84px;min-height:66px;}
-.rce{background:#EFEDE6;border-color:#D4D2CC;}
-.rcp{background:#FFF8D8;border-color:#D4A800;}
-.rcf{background:#D4EDD4;border-color:#5A9A5A;}
-.rcid{font-size:9px;font-family:monospace;font-weight:800;color:#888;}
-.rcqty{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;}
-.rcnm{font-size:9px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px;}
-.rcbar{height:3px;border-radius:2px;background:#DDD;margin-top:5px;overflow:hidden;}
-.rcbp{height:100%;border-radius:2px;background:#D4A800;}
-.rcbf{height:100%;border-radius:2px;background:#5A9A5A;}
-.alert{padding:13px 16px;border-radius:12px;font-size:14px;margin-bottom:12px;font-weight:500;}
-.aok{background:#D4EDD4;color:#145214;}.aerr{background:#FFE8E8;color:#991111;}.awrn{background:#FFF8D8;color:#7A5200;}
-.sec{font-size:11px;font-weight:800;letter-spacing:.1em;color:#888;margin-bottom:10px;text-transform:uppercase;}
-.dhr{border:none;border-top:1px solid #EEEAE4;margin:16px 0;}
-.empty{text-align:center;padding:48px 20px;}
-.eico{font-size:52px;margin-bottom:14px;}
-.empty p{font-size:16px;color:#999;margin-bottom:6px;}
-.empty small{font-size:13px;color:#BBB;display:block;margin-bottom:20px;}
-.spin{width:32px;height:32px;border:3px solid #EEE;border-top-color:#C48A00;border-radius:50%;animation:sp .7s linear infinite;margin:40px auto;}
-@keyframes sp{to{transform:rotate(360deg)}}
-.hrow{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid #F0EDE8;}
+.sname{flex:1;font-size:14px;font-weight:500;color:#e0e0e0;}
+.ssku{font-family:monospace;font-size:10px;color:#666;margin-top:2px;}
+.sqty{font-size:18px;font-weight:800;color:#FFD600;font-variant-numeric:tabular-nums;}
+
+/* ASSIGN ROWS */
+.arow{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:10px;margin-bottom:6px;}
+.ain{background:#1a3a1a;border:1px solid #2a5a2a;}
+.aout{background:#3a1a1a;border:1px solid #5a2a2a;}
+.awrn{background:#3a2800;border:1px solid #5a4000;}
+.apos{font-family:monospace;font-size:17px;font-weight:900;color:#FFD600;}
+.aqty{font-size:14px;font-weight:700;color:#e0e0e0;}
+
+/* HISTORY */
+.hrow{display:flex;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #252525;}
 .hrow:last-child{border-bottom:none;}
-.htag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;}
-.htin{background:#D4EDD4;color:#145214;}.htout{background:#FFE8E8;color:#991111;}
+.htag{font-family:monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.06em;}
+.htin{background:#1a3a1a;color:#44ff44;}.htout{background:#3a1a1a;color:#ff6666;}
 .hinfo{flex:1;}
-.hinm{font-size:14px;font-weight:500;}
-.hipos{font-size:12px;color:#AAA;margin-top:1px;}
-.hqty{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;}
-.hdate{font-size:11px;color:#BBB;min-width:56px;text-align:right;}
+.hinm{font-size:13px;font-weight:600;color:#e0e0e0;}
+.hipos{font-family:monospace;font-size:11px;color:#666;margin-top:1px;}
+.hqty{font-size:15px;font-weight:800;color:#FFD600;font-variant-numeric:tabular-nums;}
+.hdate{font-size:10px;color:#555;min-width:52px;text-align:right;font-family:monospace;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:#161616;border-radius:10px;padding:4px;margin-bottom:14px;}
+.tab{flex:1;height:36px;border:none;border-radius:8px;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;background:none;color:#555;transition:all .15s;}
+.tab.on{background:#FFD600;color:#111;}
+
+/* SEARCH RESULTS */
+.res-item{padding:12px 14px;border-radius:10px;background:#161616;border:1px solid #252525;margin-bottom:6px;cursor:pointer;}
+.res-item:hover{border-color:#FFD600;}
+.res-item.sel{border-color:#FFD600;background:#2a2000;}
+.res-nm{font-size:14px;font-weight:600;color:#e0e0e0;}
+.res-sku{font-family:monospace;font-size:11px;color:#888;margin-top:2px;}
+
+/* ALERTS */
+.alert{padding:12px 14px;border-radius:10px;font-size:13px;margin-bottom:10px;font-weight:500;font-family:monospace;}
+.aok{background:#1a3a1a;color:#44ff44;border:1px solid #2a5a2a;}
+.aerr{background:#3a1a1a;color:#ff6666;border:1px solid #5a2a2a;}
+.awarn{background:#3a2800;color:#FFD600;border:1px solid #5a4000;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-end;}
+.modal{background:#1e1e1e;border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:85vh;overflow-y:auto;border:1px solid #2a2a2a;}
+.modal-title{font-family:monospace;font-size:12px;letter-spacing:.14em;color:#FFD600;font-weight:700;text-transform:uppercase;margin-bottom:16px;}
+
+/* SPINNER */
+.spin{width:28px;height:28px;border:2.5px solid #2a2a2a;border-top-color:#FFD600;border-radius:50%;animation:sp .7s linear infinite;margin:40px auto;}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* EMPTY */
+.empty{text-align:center;padding:44px 20px;}
+.eico{font-size:48px;margin-bottom:12px;}
+.empty p{font-size:15px;color:#666;margin-bottom:6px;}
+
+/* SECTION LABEL */
+.sec{font-family:monospace;font-size:10px;font-weight:700;letter-spacing:.1em;color:#555;margin-bottom:8px;text-transform:uppercase;}
+.dhr{border:none;border-top:1px solid #252525;margin:14px 0;}
+
+/* OC ITEMS */
+.oc-item{border:1px solid #2a2a2a;border-radius:10px;padding:12px;margin-bottom:8px;background:#161616;}
+.oc-nm{font-size:14px;font-weight:600;color:#e0e0e0;margin-bottom:2px;}
+.oc-sku{font-family:monospace;font-size:10px;color:#888;}
+.oc-qty{font-family:monospace;font-size:18px;font-weight:800;color:#FFD600;}
+.oc-fmt{display:flex;gap:6px;margin-top:8px;}
+.fmt-btn{flex:1;height:36px;border-radius:8px;border:1.5px solid #2a2a2a;background:#161616;color:#888;font-family:monospace;font-size:11px;font-weight:700;text-transform:uppercase;cursor:pointer;}
+.fmt-btn.on{border-color:#FFD600;color:#FFD600;background:#2a2000;}
+
+/* SALIDA */
+.salida-item{border:1px solid #2a2a2a;border-radius:10px;padding:12px;margin-bottom:8px;background:#161616;}
+.salida-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.salida-nm{font-size:14px;font-weight:600;color:#e0e0e0;}
+.salida-sku{font-family:monospace;font-size:10px;color:#888;margin-top:2px;}
+.salida-row{display:flex;gap:8px;margin-top:6px;}
+.del-btn{width:32px;height:32px;border-radius:8px;border:none;background:#3a1a1a;color:#ff6666;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* SCAN */
+.scan-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;margin-bottom:6px;border:1px solid #2a2a2a;}
+.scan-item.done{background:#1a3a1a;border-color:#44ff44;}
+.scan-item.pending{background:#161616;}
+.scan-check{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.scan-item.done .scan-check{background:#44ff44;color:#111;}
+.scan-item.pending .scan-check{background:#2a2a2a;color:#555;}
+
+/* LABEL PRINT */
+@media print {
+  body * { visibility: hidden; }
+  #labels-print, #labels-print * { visibility: visible; }
+  #labels-print { position: absolute; top: 0; left: 0; width: 100%; }
+  .label-page { page-break-after: always; }
+  body { background: white !important; }
+}
+.labels-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.label-card{width:227px;height:113px;border:1px dashed #333;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;background:#1e1e1e;overflow:hidden;}
+.label-name{font-family:monospace;font-size:9px;font-weight:700;text-transform:uppercase;text-align:center;color:#e0e0e0;margin-top:4px;line-height:1.2;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.label-sku{font-family:monospace;font-size:8px;color:#888;margin-top:2px;text-align:center;}
+.label-qr{width:70px;height:70px;}
+
+/* SORT BTNS */
+.sort-row{display:flex;gap:6px;margin-bottom:10px;}
+.sort-btn{height:30px;padding:0 12px;border-radius:6px;border:1px solid #2a2a2a;background:#161616;color:#888;font-family:monospace;font-size:10px;font-weight:700;text-transform:uppercase;cursor:pointer;}
+.sort-btn.on{border-color:#FFD600;color:#FFD600;}
+
+/* POS CONFIG */
+.pos-cfg-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #252525;}
+.pos-cfg-row:last-child{border-bottom:none;}
+.pos-cfg-id{font-family:monospace;font-size:13px;font-weight:700;color:#FFD600;min-width:64px;}
+.pos-cfg-input{height:38px;flex:1;}
+
+/* INGRESO ASSIGN TABLE */
+.assign-tbl{width:100%;border-collapse:collapse;margin-top:6px;}
+.assign-tbl th{font-family:monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#555;padding:6px 4px;text-align:left;border-bottom:1px solid #252525;}
+.assign-tbl td{padding:8px 4px;border-bottom:1px solid #1e1e1e;font-size:13px;color:#ccc;}
+.assign-tbl tr:last-child td{border-bottom:none;}
+.assign-tbl input{height:34px;padding:0 8px;font-size:13px;}
+
+/* QR scanner */
+#qr-reader{width:100%;max-width:400px;margin:0 auto;}
 </style>
 </head>
 <body>
 <div id="root">
-  <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#EFEDE6;">
-    <div class="spin"></div>
+  <div id="hdr">
+    <div>
+      <div class="hdr-title">Estantería</div>
+      <div class="hdr-sub" id="hdr-sub">Cargando…</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div id="hdr-stock">—</div>
+      <button class="gear-btn" onclick="openConfig()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="content"></div>
+  <nav id="nav">
+    <button class="nt" data-v="dash" onclick="nav('dash')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Panel
+    </button>
+    <button class="nt" data-v="rack" onclick="nav('rack')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="3" rx="1"/><rect x="2" y="14" width="20" height="3" rx="1"/><line x1="6" y1="7" x2="6" y2="3"/><line x1="18" y1="7" x2="18" y2="3"/><line x1="6" y1="21" x2="6" y2="17"/><line x1="18" y1="21" x2="18" y2="17"/></svg>
+      Rack
+    </button>
+    <button class="nt" data-v="ingreso" onclick="nav('ingreso')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+      Ingresar
+    </button>
+    <button class="nt" data-v="salida" onclick="nav('salida')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+      Salida
+    </button>
+    <button class="nt" data-v="buscar" onclick="nav('buscar')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Buscar
+    </button>
+    <button class="nt" data-v="hist" onclick="nav('hist')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Historial
+    </button>
+  </nav>
+</div>
+
+<!-- CONFIG MODAL -->
+<div id="modal-config" class="modal-bg" style="display:none;" onclick="if(event.target===this)closeConfig()">
+  <div class="modal">
+    <div class="modal-title">⚙ Configurar Capacidades</div>
+    <div id="config-body"></div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-y" onclick="saveConfig()">Guardar cambios</button>
+      <button class="btn btn-dk" style="margin-top:8px;" onclick="closeConfig()">Cancelar</button>
+    </div>
   </div>
 </div>
+
+<!-- LABELS MODAL -->
+<div id="modal-labels" class="modal-bg" style="display:none;" onclick="if(event.target===this)closeLabels()">
+  <div class="modal">
+    <div class="modal-title">🖨 Etiquetas</div>
+    <div style="margin-bottom:12px;display:flex;gap:8px;">
+      <button class="btn btn-y" onclick="printLabels()" style="flex:1;">Imprimir</button>
+      <button class="btn btn-dk" onclick="closeLabels()" style="flex:1;">Cerrar</button>
+    </div>
+    <div id="labels-print">
+      <div id="labels-body" class="labels-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN MODAL -->
+<div id="modal-scan" class="modal-bg" style="display:none;">
+  <div class="modal">
+    <div class="modal-title">📷 Escanear QR</div>
+    <div id="qr-reader"></div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-dk" onclick="closeScan()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ═══════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════
-let A={
-  loading:false,
-  types:[],positions:[],stock:[],hist:[],
-  view:'dashboard',msg:null,prev:null,sr:null,selFmt:'A'
+// ═══════════════ STATE ═══════════════
+const S = {
+  types:[], positions:[], stock:[], hist:[],
+  view:'dash', loading:false, msg:null,
+
+  // Ingreso
+  inTab:'oc',
+  ocNum:'', ocData:null, ocPrev:null,
+  artQ:'', artTimer:null, artResults:[], artSel:null, artQty:'1', artFormat:'A', artPrev:null,
+
+  // Buscar
+  bQ:'', bSel:null,
+
+  // Salida
+  salidaItems:[], salidaQ:'', salidaTimer:null, salidaResults:[], salidaOrder:null, salidaSort:'obra',
+  salidaScanned:{},
+
+  // Config
+  cfgEdits:{},
+
+  // Labels
+  labelsData:null,
 };
 
-// ═══════════════════════════════════════════════
-//  API
-// ═══════════════════════════════════════════════
+// ═══════════════ API ═══════════════
 async function api(method, path, body){
-  const opts={method, headers:{'Content-Type':'application/json'}};
+  const opts={method,headers:{'Content-Type':'application/json'}};
   if(body) opts.body=JSON.stringify(body);
   const r=await fetch(path,opts);
   const d=await r.json();
@@ -130,343 +323,687 @@ async function api(method, path, body){
 }
 
 async function loadAll(){
-  A.loading=true; render();
+  S.loading=true; render();
   try{
     const d=await api('GET','/api/data');
-    A.types=d.types; A.positions=d.positions; A.stock=d.stock; A.hist=d.movements;
-  }catch(e){ A.msg={text:'Error de conexión: '+e.message,t:'err'}; }
-  A.loading=false; render();
+    S.types=d.types; S.positions=d.positions; S.stock=d.stock; S.hist=d.movements;
+  }catch(e){ showMsg('Error de conexión: '+e.message,'err'); }
+  S.loading=false; render();
 }
 
-// ═══════════════════════════════════════════════
-//  HELPERS
-// ═══════════════════════════════════════════════
-function posUsed(p){return A.stock.filter(s=>s.position_id===p.id).reduce((n,s)=>n+s.quantity,0);}
+function showMsg(text,t='ok'){
+  S.msg={text,t}; render();
+  setTimeout(()=>{S.msg=null;render();},3500);
+}
+
+// ═══════════════ HELPERS ═══════════════
+function posUsed(p){return S.stock.filter(s=>s.position_id===p.id).reduce((n,s)=>n+s.quantity,0);}
 function posFree(p){return p.capacity-posUsed(p);}
-function getQty(pid,tid){return(A.stock.find(s=>s.position_id===pid&&s.plate_type_id===tid)||{}).quantity||0;}
-function typeTotal(tid){return A.stock.filter(s=>s.plate_type_id===tid).reduce((n,s)=>n+s.quantity,0);}
-function tname(tid){return(A.types.find(t=>t.id===tid)||{}).name||'?';}
-function tfmt(tid){return(A.types.find(t=>t.id===tid)||{}).format||'A';}
-function totalStock(){return A.stock.reduce((n,s)=>n+s.quantity,0);}
-function usedPos(){return new Set(A.stock.map(s=>s.position_id)).size;}
-function fmtDim(f){return f==='A'?'122 cm':f==='B'?'180 cm':'Especial';}
-function pcls(f){return 'pill p'+f;}
-function fmtCol(f){return f==='A'?'#1A3A99':f==='B'?'#994400':'#2A7A2A';}
+function getQty(pid,tid){return(S.stock.find(s=>s.position_id===pid&&s.plate_type_id===tid)||{}).quantity||0;}
+function typeTotal(tid){return S.stock.filter(s=>s.plate_type_id===tid).reduce((n,s)=>n+s.quantity,0);}
+function tname(tid){return(S.types.find(t=>t.id===tid)||{}).name||'?';}
+function tsku(tid){return(S.types.find(t=>t.id===tid)||{}).sku||'';}
+function tfmt(tid){return(S.types.find(t=>t.id===tid)||{}).format||'A';}
+function totalStock(){return S.stock.reduce((n,s)=>n+s.quantity,0);}
 
-// ═══════════════════════════════════════════════
-//  AUTO-ASSIGN
-// ═══════════════════════════════════════════════
-function autoAssign(tid,qty){
-  const fmt=tfmt(tid); let rem=qty,assigns=[];
-  const existing=A.positions
-    .filter(p=>p.format===fmt&&getQty(p.id,tid)>0&&posFree(p)>0)
-    .sort((a,b)=>posUsed(b)-posUsed(a));
-  for(const p of existing){if(rem<=0)break;const q=Math.min(posFree(p),rem);assigns.push({pos:p,qty:q});rem-=q;}
+function autoAssign(typeId, qty, format){
+  const fmt = format || tfmt(typeId);
+  let rem = qty;
+  const assigns=[];
+  // 1) same type, fullest with space (sorted desc by used)
+  const withType = S.positions
+    .filter(p=>p.format===fmt && getQty(p.id,typeId)>0 && posFree(p)>0)
+    .sort((a,b)=>getQty(b.id,typeId)-getQty(a.id,typeId));
+  for(const p of withType){
+    if(rem<=0) break;
+    const take=Math.min(rem,posFree(p));
+    assigns.push({posId:p.id,qty:take}); rem-=take;
+  }
+  // 2) first empty of correct format from N1
   if(rem>0){
-    const empty=A.positions.filter(p=>p.format===fmt&&posUsed(p)===0).sort((a,b)=>a.id.localeCompare(b.id));
-    for(const p of empty){if(rem<=0)break;const q=Math.min(p.capacity,rem);assigns.push({pos:p,qty:q});rem-=q;}
+    const empty=S.positions
+      .filter(p=>p.format===fmt && posUsed(p)===0)
+      .sort((a,b)=>a.id.localeCompare(b.id));
+    for(const p of empty){
+      if(rem<=0) break;
+      const take=Math.min(rem,p.capacity);
+      assigns.push({posId:p.id,qty:take}); rem-=take;
+    }
   }
-  return{assigns,overflow:rem};
+  return {assigns, overflow:rem};
 }
 
-function autoWithdraw(tid,qty){
-  let rem=qty,assigns=[];
-  const ps=A.positions
-    .filter(p=>getQty(p.id,tid)>0)
-    .sort((a,b)=>getQty(a.id,tid)-getQty(b.id,tid));
-  for(const p of ps){if(rem<=0)break;const cur=getQty(p.id,tid);const q=Math.min(cur,rem);assigns.push({pos:p,qty:q,remaining:cur-q});rem-=q;}
-  return{assigns,shortfall:rem};
+function autoWithdraw(typeId, qty){
+  let rem=qty;
+  const assigns=[];
+  const withType=S.positions
+    .filter(p=>getQty(p.id,typeId)>0)
+    .sort((a,b)=>getQty(a.id,typeId)-getQty(b.id,typeId));
+  for(const p of withType){
+    if(rem<=0) break;
+    const cur=getQty(p.id,typeId);
+    const take=Math.min(rem,cur);
+    assigns.push({posId:p.id,qty:take,remaining:cur-take});
+    rem-=take;
+  }
+  return {assigns,shortfall:rem};
 }
 
-// ═══════════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════════
+// ═══════════════ NAV ═══════════════
+function nav(v){
+  S.view=v;
+  S.msg=null;
+  if(v==='ingreso'){S.ocData=null;S.ocPrev=null;S.artPrev=null;S.artSel=null;S.artResults=[];}
+  if(v==='salida'){S.salidaOrder=null;}
+  render();
+}
+
+// ═══════════════ RENDER ═══════════════
 function render(){
-  const root=document.getElementById('root');
-  if(!root)return;
-  if(A.loading){
-    root.innerHTML=`<div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#EFEDE6;"><div class="spin"></div><p style="color:#888;font-size:14px;margin-top:16px;">Cargando...</p></div>`;
-    return;
+  // header
+  document.getElementById('hdr-stock').textContent=S.loading?'…':totalStock();
+  const occupied=S.positions.filter(p=>posUsed(p)>0).length;
+  document.getElementById('hdr-sub').textContent=`${occupied}/${S.positions.length} posiciones ocupadas`;
+
+  // nav active
+  document.querySelectorAll('.nt').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+
+  // content
+  const c=document.getElementById('content');
+  if(S.loading){c.innerHTML='<div class="spin"></div>';return;}
+
+  let html='';
+  if(S.msg){
+    const cl=S.msg.t==='ok'?'aok':S.msg.t==='err'?'aerr':'awarn';
+    html+=`<div class="alert ${cl}">${esc(S.msg.text)}</div>`;
   }
-  const views={dashboard:vDash,estanteria:vRack,ingresar:vIn,buscar:vSearch,baja:vBaja,historial:vHist};
-  const nav=[
-    ['dashboard','Resumen','<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
-    ['estanteria','Estantería','<rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="10" width="20" height="4" rx="1"/><rect x="2" y="17" width="20" height="4" rx="1"/>'],
-    ['ingresar','Ingresar','<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>'],
-    ['buscar','Buscar','<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'],
-    ['baja','Dar de baja','<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'],
-    ['historial','Historial','<polyline points="12 8 12 12 14 14"/><circle cx="12" cy="12" r="10"/>']
-  ];
-  const up=usedPos(),tp=A.positions.length;
-  root.innerHTML=`
-  <div id="hdr">
-    <div id="hdr-l">
-      <div class="hpre">ESTANTERÍA MADERABLE</div>
-      <div class="hsub">${up} / ${tp} posiciones ocupadas</div>
-    </div>
-    <div id="hdr-r"><div class="hsl">EN STOCK</div><div id="hsv">${totalStock()}</div></div>
-  </div>
-  <div id="content">
-    ${A.msg?`<div class="alert ${A.msg.t==='ok'?'aok':A.msg.t==='warn'?'awrn':'aerr'}">${A.msg.text}</div>`:''}
-    ${(views[A.view]||vDash)()}
-  </div>
-  <nav id="nav">
-    ${nav.map(([v,l,svg])=>`<button class="nt${A.view===v?' on':''}" onclick="SV('${v}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">${svg}</svg>${l}</button>`).join('')}
-  </nav>`;
-  initFmtBtns();
+
+  if(S.view==='dash') html+=vDash();
+  else if(S.view==='rack') html+=vRack();
+  else if(S.view==='ingreso') html+=vIngreso();
+  else if(S.view==='salida') html+=vSalida();
+  else if(S.view==='buscar') html+=vBuscar();
+  else if(S.view==='hist') html+=vHist();
+
+  c.innerHTML=html;
+  afterRender();
 }
 
-// ═══════════════════════════════════════════════
-//  VIEWS
-// ═══════════════════════════════════════════════
+function afterRender(){
+  if(S.view==='ingreso'){
+    const oi=document.getElementById('oc-input');
+    if(oi && !S.ocData) oi.focus();
+  }
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ═══════════════ DASHBOARD ═══════════════
 function vDash(){
-  const tot=totalStock(),up=usedPos(),fp=A.positions.length-up;
-  const cnt=f=>new Set(A.stock.filter(s=>{const p=A.positions.find(x=>x.id===s.position_id);return p&&p.format===f;}).map(s=>s.position_id)).size;
-  const tot2=f=>A.positions.filter(p=>p.format===f).length;
-  return`<div class="mets">
-    <div class="met"><div class="met-l">Total en stock</div><div class="met-v">${tot}</div></div>
-    <div class="met"><div class="met-l">Tipos de placa</div><div class="met-v">${A.types.length}</div></div>
-    <div class="met"><div class="met-l" style="color:#B87000;">Posiciones ocupadas</div><div class="met-v" style="color:#B87000;">${up}</div></div>
-    <div class="met"><div class="met-l" style="color:#2a7a2a;">Posiciones libres</div><div class="met-v" style="color:#2a7a2a;">${fp}</div></div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
-    <div class="met" style="background:#ECF0FF;"><div class="met-l" style="color:#1A3A99;">A · 122cm</div><div class="met-v" style="color:#1A3A99;">${cnt('A')}<span style="font-size:14px;font-weight:500;"> / ${tot2('A')}</span></div></div>
-    <div class="met" style="background:#FFF3E8;"><div class="met-l" style="color:#994400;">B · 180cm</div><div class="met-v" style="color:#994400;">${cnt('B')}<span style="font-size:14px;font-weight:500;"> / ${tot2('B')}</span></div></div>
-    <div class="met" style="background:#E8F5E8;"><div class="met-l" style="color:#2A7A2A;">Especial</div><div class="met-v" style="color:#2A7A2A;">${cnt('X')}<span style="font-size:14px;font-weight:500;"> / ${tot2('X')}</span></div></div>
-  </div>
-  ${A.types.length===0
-    ?`<div class="empty"><div class="eico">📦</div><p>Sin placas registradas</p><small>Empezá desde "Ingresar"</small><button class="btn btn-blk" style="max-width:200px;margin:0 auto;" onclick="SV('ingresar')">Ir a Ingresar →</button></div>`
-    :`<div class="sec">Stock por tipo</div>
-      <div class="card" style="padding:4px 18px;">
-        ${A.types.map(t=>{const st=typeTotal(t.id),locs=new Set(A.stock.filter(s=>s.plate_type_id===t.id).map(s=>s.position_id)).size;
-          return`<div class="srow"><span class="${pcls(t.format)}">${t.format}</span><span class="sname">${t.name}</span><span class="sqty">${st}</span><span style="font-size:11px;color:#BBB;min-width:48px;text-align:right;">${locs} pos.</span></div>`;}).join('')}
-      </div>`}
-  <div style="text-align:right;margin-top:8px;"><button class="btn btn-out btn-sm" onclick="loadAll()">↺ Actualizar</button></div>`;
-}
-
-function vRack(){
-  const fmts=[{f:'A',t:'FORMATO A — 122 cm',c:'rftA'},{f:'B',t:'FORMATO B — 180 cm',c:'rftB'},{f:'X',t:'COLUMNA ESPECIAL — 150 cap',c:'rftX'}];
-  return fmts.map(({f,t,c})=>{
-    const cols=[...new Set(A.positions.filter(p=>p.format===f).map(p=>p.column_id))].sort();
-    if(!cols.length)return'';
-    return`<div class="rack-fmt">
-      <div class="rack-ftitle ${c}">${t}</div>
-      <div class="rack-cols">
-        ${cols.map(col=>{
-          const levels=A.positions.filter(p=>p.column_id===col).sort((a,b)=>(b.level||0)-(a.level||0));
-          return`<div class="rcol">
-            <div class="rclabel">${col}</div>
-            ${levels.map(p=>{
-              const u=posUsed(p),cap=p.capacity,pct=cap>0?u/cap:0;
-              const cls=u===0?'rce':pct>=1?'rcf':'rcp';
-              const items=A.stock.filter(s=>s.position_id===p.id);
-              const bp=Math.min(100,Math.round(pct*100));
-              return`<div class="rcell ${cls}" title="${p.id}: ${u}/${cap} uds&#10;${items.map(i=>tname(i.plate_type_id)+': '+i.quantity).join('\n')||'Vacía'}">
-                <div class="rcid">${p.id}${p.level?' N'+p.level:''}</div>
-                ${u>0?`<div class="rcqty">${u}</div><div class="rcnm">${items.map(i=>tname(i.plate_type_id)).join(', ')}</div>`:'<div style="height:24px;"></div>'}
-                <div class="rcbar"><div class="${pct>=1?'rcbf':'rcbp'}" style="width:${bp}%;height:3px;border-radius:2px;"></div></div>
-              </div>`;
-            }).join('')}
-          </div>`;
-        }).join('')}
+  const total=totalStock();
+  const types=S.types.length;
+  const occ=S.positions.filter(p=>posUsed(p)>0).length;
+  const free=S.positions.filter(p=>posUsed(p)===0).length;
+  let h=`<div class="mets">
+    <div class="met"><div class="met-l">Stock total</div><div class="met-v">${total}</div></div>
+    <div class="met"><div class="met-l">Artículos</div><div class="met-v">${types}</div></div>
+    <div class="met"><div class="met-l">Ocupadas</div><div class="met-v">${occ}</div></div>
+    <div class="met"><div class="met-l">Libres</div><div class="met-v">${free}</div></div>
+  </div>`;
+  if(S.types.length===0){
+    h+=`<div class="empty"><div class="eico">📦</div><p>Sin stock aún</p></div>`;
+    return h;
+  }
+  h+=`<div class="card"><div class="card-title">Stock por artículo</div>`;
+  const sorted=[...S.types].sort((a,b)=>typeTotal(b.id)-typeTotal(a.id));
+  for(const t of sorted){
+    const qty=typeTotal(t.id);
+    if(!qty) continue;
+    h+=`<div class="srow">
+      <div style="flex:1;">
+        <div class="sname">${esc(t.name)}</div>
+        ${t.sku?`<div class="ssku">${esc(t.sku)}</div>`:''}
       </div>
+      <span class="pill p${t.format}">${t.format}</span>
+      <div class="sqty">${qty}</div>
     </div>`;
-  }).join('');
+  }
+  h+=`</div>`;
+  return h;
 }
 
-function vIn(){
-  return`<div>
-  <div class="card">
-    <div class="sec">Nuevo tipo de placa</div>
-    <div class="fg"><label class="fl">Nombre / descripción</label><input id="ntn" placeholder="Ej: MDF 18mm, Melamina blanca 25mm..." /></div>
+// ═══════════════ RACK ═══════════════
+function vRack(){
+  const cols=['A1','A2','A3','A4','B1','B2','X1'];
+  let h=`<div class="rack-wrap"><div class="rack-floor">`;
+  for(const col of cols){
+    const levels=S.positions.filter(p=>p.column_id===col).sort((a,b)=>(a.level||0)-(b.level||0));
+    if(!levels.length) continue;
+    h+=`<div class="rcol-wrap"><div class="rclabel">${col}</div><div class="rcol">`;
+    for(const p of levels){
+      const used=posUsed(p);
+      const pct=p.capacity?Math.round(used/p.capacity*100):0;
+      const cls=used===0?'rc-empty':pct>=100?'rc-full':'rc-partial';
+      const barCls=pct>=100?'rcbf':'rcbp';
+      // top item name
+      const topStock=S.stock.filter(s=>s.position_id===p.id).sort((a,b)=>b.quantity-a.quantity)[0];
+      const nm=topStock?tname(topStock.plate_type_id):'';
+      h+=`<div class="rcell ${cls}">
+        <div>
+          <div class="rcid">${esc(p.id)}</div>
+          <div class="rcqty">${used}<span style="font-size:10px;color:#666;font-weight:400">/${p.capacity}</span></div>
+          <div class="rcnm">${esc(nm.substring(0,18))}</div>
+        </div>
+        <div class="rcbar"><div class="${barCls}" style="width:${pct}%"></div></div>
+      </div>`;
+    }
+    h+=`</div></div>`;
+  }
+  h+=`</div></div>`;
+  return h;
+}
+
+// ═══════════════ INGRESO ═══════════════
+function vIngreso(){
+  let h=`<div class="tabs">
+    <button class="tab ${S.inTab==='oc'?'on':''}" onclick="setTab('oc')">Por OC</button>
+    <button class="tab ${S.inTab==='art'?'on':''}" onclick="setTab('art')">Por artículo</button>
+  </div>`;
+  if(S.inTab==='oc') h+=vInOC();
+  else h+=vInArt();
+  return h;
+}
+
+function setTab(t){S.inTab=t;S.ocData=null;S.ocPrev=null;S.artPrev=null;render();}
+
+// --- Tab OC ---
+function vInOC(){
+  if(S.ocPrev) return vOCConfirm();
+  let h=`<div class="card">
+    <div class="card-title">Número de OC</div>
+    <div class="fg" style="display:flex;gap:8px;">
+      <input id="oc-input" type="number" placeholder="05430" value="${esc(S.ocNum)}"
+        oninput="S.ocNum=this.value"
+        onkeydown="if(event.key==='Enter')buscarOC()"
+        style="flex:1;">
+      <button class="btn btn-y btn-sm" onclick="buscarOC()" style="white-space:nowrap;">Buscar</button>
+    </div>
+  </div>`;
+  if(S.ocData){
+    h+=`<div class="card"><div class="card-title">Artículos de ${esc(S.ocData.oc_number)}</div>`;
+    S.ocData.line_items.forEach((li,i)=>{
+      h+=`<div class="oc-item">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div><div class="oc-nm">${esc(li.item_name)}</div><div class="oc-sku">${esc(li.sku)}</div></div>
+          <div class="oc-qty">${li.quantity}</div>
+        </div>
+        <div class="oc-fmt">
+          <button class="fmt-btn ${li.format==='A'?'on':''}" onclick="setOCFmt(${i},'A')">A</button>
+          <button class="fmt-btn ${li.format==='B'?'on':''}" onclick="setOCFmt(${i},'B')">B</button>
+        </div>
+      </div>`;
+    });
+    h+=`<button class="btn btn-y" style="margin-top:8px;" onclick="previewOC()">Ver asignación</button></div>`;
+  }
+  return h;
+}
+
+async function buscarOC(){
+  const num=S.ocNum.trim();
+  if(!num){showMsg('Ingresa un número de OC','err');return;}
+  try{
+    showMsg('Buscando OC…','ok');
+    const d=await api('GET',`/api/zoho-oc?num=${encodeURIComponent(num)}`);
+    d.line_items=d.line_items.map(li=>({...li,format:'A'}));
+    S.ocData=d; S.msg=null; render();
+  }catch(e){showMsg(e.message,'err');}
+}
+
+function setOCFmt(i,fmt){S.ocData.line_items[i].format=fmt;render();}
+
+async function previewOC(){
+  if(!S.ocData) return;
+  // Resolve or create types for each line item
+  const items=[];
+  for(const li of S.ocData.line_items){
+    let t=S.types.find(x=>x.sku===li.sku||x.name===li.item_name);
+    if(!t){
+      try{
+        t=await api('POST','/api/types',{name:li.item_name,sku:li.sku,format:li.format});
+        S.types.push(t);
+      }catch(e){showMsg('Error creando tipo: '+e.message,'err');return;}
+    }
+    const {assigns,overflow}=autoAssign(t.id,li.quantity,li.format||t.format);
+    items.push({...li,type_id:t.id,assigns,overflow});
+  }
+  S.ocPrev=items; render();
+}
+
+function vOCConfirm(){
+  let h=`<div class="card"><div class="card-title">Confirmar ingreso OC ${esc(S.ocData.oc_number)}</div>`;
+  for(const item of S.ocPrev){
+    h+=`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #252525;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <div><div class="sname">${esc(item.item_name)}</div><div class="ssku">${esc(item.sku)}</div></div>
+        <div class="sqty">${item.quantity}</div>
+      </div>`;
+    for(const a of item.assigns){
+      h+=`<div class="arow ain"><span class="apos">${esc(a.posId)}</span><span class="aqty">+${a.qty}</span></div>`;
+    }
+    if(item.overflow>0) h+=`<div class="arow awrn"><span>Sin posición</span><span class="aqty">${item.overflow}</span></div>`;
+    h+=`</div>`;
+  }
+  h+=`<div style="display:flex;gap:8px;margin-top:4px;">
+    <button class="btn btn-dk" onclick="S.ocPrev=null;render()">Volver</button>
+    <button class="btn btn-y" onclick="confirmOC()">Confirmar</button>
+  </div></div>`;
+  return h;
+}
+
+async function confirmOC(){
+  try{
+    for(const item of S.ocPrev){
+      if(!item.assigns.length) continue;
+      await api('POST','/api/ingreso',{tid:item.type_id,assigns:item.assigns});
+    }
+    // Build labels data
+    S.labelsData=S.ocPrev.map(item=>({name:item.item_name,sku:item.sku,qty:item.assigns.reduce((n,a)=>n+a.qty,0)}));
+    S.ocData=null; S.ocPrev=null; S.ocNum='';
+    await loadAll();
+    showMsg('Ingreso registrado','ok');
+    openLabels();
+  }catch(e){showMsg(e.message,'err');}
+}
+
+// --- Tab Artículo ---
+function vInArt(){
+  if(S.artPrev) return vArtConfirm();
+  let h=`<div class="card">
+    <div class="card-title">Buscar artículo</div>
     <div class="fg">
-      <label class="fl">Formato de estantería</label>
-      <div class="fmt-row">
-        <button class="fmtb" id="fbA" onclick="selFmt('A')"><span class="fmtbig" style="color:#1A3A99;">A</span><span class="fmtsub">122 cm</span></button>
-        <button class="fmtb" id="fbB" onclick="selFmt('B')"><span class="fmtbig" style="color:#994400;">B</span><span class="fmtsub">180 cm</span></button>
-        <button class="fmtb" id="fbX" onclick="selFmt('X')"><span class="fmtbig" style="color:#2A7A2A;">X</span><span class="fmtsub">Especial</span></button>
+      <input id="art-input" type="text" placeholder="Nombre o SKU…" value="${esc(S.artQ)}"
+        oninput="artSearch(this.value)">
+    </div>`;
+  if(S.artResults.length){
+    h+=`<div style="margin-bottom:8px;">`;
+    for(const r of S.artResults){
+      const sel=S.artSel&&S.artSel.sku===r.sku&&S.artSel.item_name===r.item_name;
+      h+=`<div class="res-item ${sel?'sel':''}" onclick="selArt(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+        <div class="res-nm">${esc(r.item_name)}</div>
+        <div class="res-sku">${esc(r.sku)}</div>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+  if(S.artSel){
+    h+=`<div class="dhr"></div>
+    <div class="sec">${esc(S.artSel.item_name)}</div>
+    <div class="fg"><label class="fl">Cantidad</label>
+      <input type="number" min="1" value="${esc(S.artQty)}" oninput="S.artQty=this.value">
+    </div>
+    <div class="fg"><label class="fl">Formato</label>
+    <div class="oc-fmt">
+      <button class="fmt-btn ${S.artFormat==='A'?'on':''}" onclick="S.artFormat='A';render()">A</button>
+      <button class="fmt-btn ${S.artFormat==='B'?'on':''}" onclick="S.artFormat='B';render()">B</button>
+    </div></div>
+    <button class="btn btn-y" onclick="previewArt()">Ver asignación</button>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+function artSearch(val){
+  S.artQ=val;
+  if(S.artTimer) clearTimeout(S.artTimer);
+  if(!val||val.length<2){S.artResults=[];render();return;}
+  S.artTimer=setTimeout(async()=>{
+    try{
+      const d=await api('GET',`/api/zoho-items?q=${encodeURIComponent(val)}`);
+      S.artResults=d.items||[];
+    }catch(e){S.artResults=[];}
+    render();
+  },400);
+}
+
+function selArt(r){S.artSel=r;render();}
+
+async function previewArt(){
+  const qty=parseInt(S.artQty);
+  if(!S.artSel||!qty||qty<1){showMsg('Completa los datos','err');return;}
+  let t=S.types.find(x=>x.sku===S.artSel.sku||x.name===S.artSel.item_name);
+  if(!t){
+    try{
+      t=await api('POST','/api/types',{name:S.artSel.item_name,sku:S.artSel.sku,format:S.artFormat});
+      S.types.push(t);
+    }catch(e){showMsg('Error creando tipo: '+e.message,'err');return;}
+  }
+  const {assigns,overflow}=autoAssign(t.id,qty,S.artFormat||t.format);
+  S.artPrev={type_id:t.id,name:S.artSel.item_name,sku:S.artSel.sku,qty,assigns,overflow};
+  render();
+}
+
+function vArtConfirm(){
+  const p=S.artPrev;
+  let h=`<div class="card"><div class="card-title">Confirmar ingreso</div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+      <div><div class="sname">${esc(p.name)}</div><div class="ssku">${esc(p.sku)}</div></div>
+      <div class="sqty">${p.qty}</div>
+    </div>`;
+  for(const a of p.assigns){
+    h+=`<div class="arow ain"><span class="apos">${esc(a.posId)}</span><span class="aqty">+${a.qty}</span></div>`;
+  }
+  if(p.overflow>0) h+=`<div class="arow awrn"><span>Sin posición para</span><span class="aqty">${p.overflow}</span></div>`;
+  h+=`<div style="display:flex;gap:8px;margin-top:10px;">
+    <button class="btn btn-dk" onclick="S.artPrev=null;render()">Volver</button>
+    <button class="btn btn-y" onclick="confirmArt()">Confirmar</button>
+  </div></div>`;
+  return h;
+}
+
+async function confirmArt(){
+  const p=S.artPrev;
+  try{
+    await api('POST','/api/ingreso',{tid:p.type_id,assigns:p.assigns});
+    S.labelsData=[{name:p.name,sku:p.sku,qty:p.assigns.reduce((n,a)=>n+a.qty,0)}];
+    S.artPrev=null; S.artSel=null; S.artQ=''; S.artResults=[];
+    await loadAll();
+    showMsg('Ingreso registrado','ok');
+    openLabels();
+  }catch(e){showMsg(e.message,'err');}
+}
+
+// ═══════════════ BUSCAR ═══════════════
+function vBuscar(){
+  let h=`<div class="card">
+    <div class="card-title">Buscar artículo</div>
+    <div class="fg">
+      <select onchange="S.bSel=+this.value;render()">
+        <option value="">— Seleccionar —</option>`;
+  const sorted=[...S.types].sort((a,b)=>a.name.localeCompare(b.name));
+  for(const t of sorted){
+    h+=`<option value="${t.id}" ${S.bSel===t.id?'selected':''}>${esc(t.name)}${t.sku?' ('+esc(t.sku)+')':''}</option>`;
+  }
+  h+=`</select></div></div>`;
+  if(S.bSel){
+    const rows=S.stock.filter(s=>s.plate_type_id===S.bSel);
+    if(!rows.length){h+=`<div class="empty"><div class="eico">📭</div><p>Sin stock</p></div>`;return h;}
+    h+=`<div class="card">`;
+    for(const s of rows){
+      const p=S.positions.find(x=>x.id===s.position_id);
+      if(!p) continue;
+      const pct=Math.round(s.quantity/p.capacity*100);
+      h+=`<div class="srow">
+        <div class="sqty" style="font-size:22px;min-width:48px;">${s.quantity}</div>
+        <div style="flex:1;">
+          <div class="sname">${esc(s.position_id)}</div>
+          <div class="rcbar" style="margin-top:6px;"><div class="rcbp" style="width:${pct}%"></div></div>
+        </div>
+        <div style="font-size:11px;color:#666;">${pct}%</div>
+      </div>`;
+    }
+    h+=`</div>`;
+  }
+  return h;
+}
+
+// ═══════════════ SALIDA ═══════════════
+function vSalida(){
+  if(S.salidaOrder) return vSalidaOrder();
+  let h=`<div class="card">
+    <div class="card-title">Buscar artículo para retirar</div>
+    <div class="fg">
+      <input type="text" placeholder="Nombre o SKU…" value="${esc(S.salidaQ)}"
+        oninput="salidaSearch(this.value)">
+    </div>`;
+  if(S.salidaResults.length){
+    for(const r of S.salidaResults){
+      const exists=S.salidaItems.find(x=>x.sku===r.sku);
+      h+=`<div class="res-item ${exists?'sel':''}" onclick="addSalidaItem(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+        <div class="res-nm">${esc(r.item_name)}</div>
+        <div class="res-sku">${esc(r.sku)}</div>
+      </div>`;
+    }
+  }
+  h+=`</div>`;
+  if(S.salidaItems.length){
+    h+=`<div class="card"><div class="card-title">Artículos a retirar</div>`;
+    S.salidaItems.forEach((item,i)=>{
+      h+=`<div class="salida-item">
+        <div class="salida-hd">
+          <div><div class="salida-nm">${esc(item.item_name)}</div><div class="salida-sku">${esc(item.sku)}</div></div>
+          <button class="del-btn" onclick="removeSalidaItem(${i})">×</button>
+        </div>
+        <div class="salida-row">
+          <div style="flex:1;"><label class="fl">Cantidad</label>
+            <input type="number" min="1" value="${esc(item.qty)}" oninput="S.salidaItems[${i}].qty=+this.value">
+          </div>
+          <div style="flex:1.5;"><label class="fl">Obra</label>
+            <input type="text" placeholder="Obra…" value="${esc(item.obra||'')}" oninput="S.salidaItems[${i}].obra=this.value">
+          </div>
+        </div>
+      </div>`;
+    });
+    h+=`<button class="btn btn-y" style="margin-top:8px;" onclick="generarOrden()">Generar orden</button></div>`;
+  }
+  return h;
+}
+
+function salidaSearch(val){
+  S.salidaQ=val;
+  if(S.salidaTimer) clearTimeout(S.salidaTimer);
+  if(!val||val.length<2){S.salidaResults=[];render();return;}
+  S.salidaTimer=setTimeout(async()=>{
+    try{
+      const d=await api('GET',`/api/zoho-items?q=${encodeURIComponent(val)}`);
+      S.salidaResults=d.items||[];
+    }catch(e){S.salidaResults=[];}
+    render();
+  },400);
+}
+
+function addSalidaItem(r){
+  if(S.salidaItems.find(x=>x.sku===r.sku)) return;
+  // Try to find existing type
+  const t=S.types.find(x=>x.sku===r.sku||x.name===r.item_name);
+  S.salidaItems.push({...r,type_id:t?t.id:null,qty:1,obra:''});
+  S.salidaResults=[];S.salidaQ='';render();
+}
+
+function removeSalidaItem(i){S.salidaItems.splice(i,1);render();}
+
+async function generarOrden(){
+  const orderLines=[];
+  for(const item of S.salidaItems){
+    if(!item.qty||item.qty<1) continue;
+    let t=item.type_id?S.types.find(x=>x.id===item.type_id):S.types.find(x=>x.sku===item.sku||x.name===item.item_name);
+    if(!t){showMsg(`${item.item_name} no tiene stock registrado`,'err');return;}
+    const total=typeTotal(t.id);
+    if(total<item.qty){showMsg(`Stock insuficiente para ${item.item_name} (${total} disponibles)`,'err');return;}
+    const {assigns,shortfall}=autoWithdraw(t.id,item.qty);
+    for(const a of assigns){
+      orderLines.push({type_id:t.id,item_name:item.item_name,sku:item.sku,obra:item.obra||'',posId:a.posId,qty:a.qty,remaining:a.remaining});
+    }
+    if(shortfall>0){showMsg(`Faltante de ${shortfall} en ${item.item_name}`,'err');return;}
+  }
+  S.salidaOrder=orderLines;
+  S.salidaScanned={};
+  render();
+}
+
+function sortOrder(by){S.salidaSort=by;render();}
+
+function vSalidaOrder(){
+  const lines=[...S.salidaOrder];
+  if(S.salidaSort==='obra') lines.sort((a,b)=>a.obra.localeCompare(b.obra)||a.item_name.localeCompare(b.item_name));
+  else if(S.salidaSort==='pos') lines.sort((a,b)=>a.posId.localeCompare(b.posId));
+  else lines.sort((a,b)=>a.item_name.localeCompare(b.item_name)||a.posId.localeCompare(b.posId));
+
+  const allDone=lines.every(l=>isScanned(l));
+
+  let h=`<div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Orden de salida</span>
+      <button class="btn btn-sm btn-dk" onclick="S.salidaOrder=null;render()">← Volver</button>
+    </div>
+    <div class="sort-row">
+      <button class="sort-btn ${S.salidaSort==='obra'?'on':''}" onclick="sortOrder('obra')">Obra</button>
+      <button class="sort-btn ${S.salidaSort==='pos'?'on':''}" onclick="sortOrder('pos')">Posición</button>
+      <button class="sort-btn ${S.salidaSort==='art'?'on':''}" onclick="sortOrder('art')">Artículo</button>
+    </div>`;
+
+  for(const l of lines){
+    const done=isScanned(l);
+    h+=`<div class="scan-item ${done?'done':'pending'}">
+      <div class="scan-check">${done?'✓':'○'}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:#e0e0e0;">${esc(l.item_name)}</div>
+        <div style="font-family:monospace;font-size:10px;color:#888;">${esc(l.posId)} · ${l.qty} ud · ${esc(l.obra)}</div>
       </div>
-    </div>
-    <button class="btn btn-out" onclick="doAddType()">+ Agregar tipo de placa</button>
-  </div>
-  ${A.types.length>0?`
-  <div class="card">
-    <div class="sec">Registrar ingreso</div>
-    <div class="fg"><label class="fl">Tipo de placa</label>
-      <select id="inTid">${A.types.map(t=>`<option value="${t.id}">[${t.format}] ${t.name} — stock: ${typeTotal(t.id)}</option>`).join('')}</select>
-    </div>
-    <div class="fg"><label class="fl">Cantidad que llega</label><input id="inQty" type="number" min="1" inputmode="numeric" placeholder="0" /></div>
-    <button class="btn btn-blk" onclick="doPrevIn()">Ver dónde guardar →</button>
-    ${A.prev&&A.prev.type==='in'?prevInH():''}
-  </div>`:``}
-  </div>`;
+      ${!done?`<button class="btn btn-sm btn-dk" onclick="openScan('${esc(l.posId)}','${esc(l.sku)}')">QR</button>`:''}
+    </div>`;
+  }
+
+  if(allDone){
+    h+=`<button class="btn btn-grn" style="margin-top:12px;" onclick="completarSalida()">✓ Confirmar salida</button>`;
+  }else{
+    const done2=lines.filter(l=>isScanned(l)).length;
+    h+=`<div style="font-family:monospace;font-size:11px;color:#666;text-align:center;margin-top:10px;">${done2}/${lines.length} confirmados</div>`;
+  }
+  h+=`</div>`;
+  return h;
 }
 
-function prevInH(){
-  const p=A.prev,f=tfmt(p.tid),col=fmtCol(f);
-  return`<hr class="dhr">
-  <div class="sec">Guardar ${p.qty} uds de <span style="color:${col};">${tname(p.tid)}</span> <span class="${pcls(f)}">${f}</span></div>
-  ${p.assigns.map(a=>`<div class="arow ain">
-    <div><div class="apos" style="color:#145214;">${a.pos.id}</div><div style="font-size:12px;color:#2a7a2a;margin-top:2px;">${fmtDim(a.pos.format)}</div></div>
-    <span class="aqty" style="color:#145214;">+ ${a.qty} uds</span>
-  </div>`).join('')}
-  ${p.overflow>0?`<div class="arow awrn"><span style="color:#7A5200;">Sin espacio para ${p.overflow} uds en Formato ${f}.</span></div>`:''}
-  ${p.assigns.length>0?`<button class="btn btn-grn" style="margin-top:10px;" onclick="doConfIn()">✓ Confirmar ingreso</button>`:''}`;
+function scanKey(posId,sku){return `${posId}|${sku}`;}
+function isScanned(l){return !!S.salidaScanned[scanKey(l.posId,l.sku)];}
+
+let qrScanner=null;
+function openScan(posId,sku){
+  document.getElementById('modal-scan').style.display='flex';
+  setTimeout(()=>{
+    qrScanner=new Html5Qrcode('qr-reader');
+    qrScanner.start({facingMode:'environment'},{fps:10,qrbox:200},(text)=>{
+      if(text===sku){
+        S.salidaScanned[scanKey(posId,sku)]=true;
+        closeScan();
+        render();
+      }
+    },(err)=>{}).catch(e=>console.error(e));
+  },300);
 }
 
-function vSearch(){
-  return`<div>
-  <div class="card">
-    <div class="sec">Buscar placa</div>
-    <div class="fg"><label class="fl">Tipo de placa</label>
-      <select id="sTid"><option value="">— Seleccionar —</option>${A.types.map(t=>`<option value="${t.id}">[${t.format}] ${t.name}</option>`).join('')}</select>
-    </div>
-    <button class="btn btn-blk" onclick="doSearch()">Buscar</button>
-  </div>
-  ${A.sr!==null?srH():''}
-  </div>`;
+function closeScan(){
+  if(qrScanner){qrScanner.stop().catch(()=>{});qrScanner=null;}
+  document.getElementById('modal-scan').style.display='none';
 }
 
-function srH(){
-  const tid=A.sr,tot=typeTotal(tid),f=tfmt(tid),col=fmtCol(f);
-  const locs=A.positions.filter(p=>getQty(p.id,tid)>0);
-  return`<div class="card">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #F0EDE8;">
-    <span class="${pcls(f)}">${f}</span>
-    <span style="flex:1;font-size:17px;font-weight:700;">${tname(tid)}</span>
-    <span style="font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;">${tot}</span>
-  </div>
-  ${locs.length===0?`<p style="color:#BBB;text-align:center;padding:14px 0;font-size:14px;">Sin stock en estantería.</p>`:
-  locs.map(p=>{const q=getQty(p.id,tid),pct=Math.round(q/p.capacity*100);
-    return`<div class="lrow"><span class="lid">${p.id}</span><span class="ldesc">Col. ${p.column_id}${p.level?' · Nivel '+p.level:''}</span><span class="lqty">${q}</span><span class="lpct">${pct}%</span></div>`;
-  }).join('')}
-  </div>`;
+async function completarSalida(){
+  try{
+    // Group by type_id
+    const byType={};
+    for(const l of S.salidaOrder){
+      if(!byType[l.type_id]) byType[l.type_id]=[];
+      byType[l.type_id].push({posId:l.posId,qty:l.qty,remaining:l.remaining});
+    }
+    for(const [tid,assigns] of Object.entries(byType)){
+      await api('POST','/api/baja',{tid:parseInt(tid),assigns});
+    }
+    S.salidaOrder=null;S.salidaItems=[];S.salidaScanned={};
+    await loadAll();
+    showMsg('Salida registrada','ok');
+    nav('dash');
+  }catch(e){showMsg(e.message,'err');}
 }
 
-function vBaja(){
-  const avail=A.types.filter(t=>typeTotal(t.id)>0);
-  return`<div>
-  ${!avail.length?`<div class="empty"><div class="eico">🔄</div><p>Sin stock disponible</p><small>Ingresá placas primero.</small></div>`:`
-  <div class="card">
-    <div class="sec">Retirar placas del stock</div>
-    <div class="fg"><label class="fl">Tipo de placa</label>
-      <select id="bTid">${avail.map(t=>`<option value="${t.id}">[${t.format}] ${t.name} — stock: ${typeTotal(t.id)}</option>`).join('')}</select>
-    </div>
-    <div class="fg"><label class="fl">Cantidad a retirar</label><input id="bQty" type="number" min="1" inputmode="numeric" placeholder="0" /></div>
-    <button class="btn btn-red" onclick="doPrevOut()">Ver de dónde retirar →</button>
-    ${A.prev&&A.prev.type==='out'?prevOutH():''}
-  </div>`}
-  </div>`;
-}
-
-function prevOutH(){
-  const p=A.prev;
-  return`<hr class="dhr">
-  <div class="sec">Retirar ${p.qty} uds de ${tname(p.tid)} desde:</div>
-  ${p.assigns.map(a=>`<div class="arow aout">
-    <div><div class="apos" style="color:#991111;">${a.pos.id}</div><div style="font-size:12px;color:#cc4444;margin-top:2px;">${a.remaining>0?'Quedan '+a.remaining+' uds':'Posición queda vacía'}</div></div>
-    <span class="aqty" style="color:#991111;">− ${a.qty} uds</span>
-  </div>`).join('')}
-  ${p.shortfall>0?`<div class="arow awrn"><span style="color:#7A5200;">Stock insuficiente. Faltan ${p.shortfall} uds.</span></div>`:''}
-  ${p.shortfall===0?`<button class="btn btn-red" style="margin-top:10px;" onclick="doConfOut()">✓ Confirmar baja</button>`:''}`;
-}
-
+// ═══════════════ HISTORIAL ═══════════════
 function vHist(){
-  if(!A.hist.length)return`<div class="empty"><div class="eico">📋</div><p>Sin movimientos aún</p></div>`;
-  const fd=d=>{const dt=new Date(d);return dt.toLocaleDateString('es-UY',{day:'2-digit',month:'2-digit'})+' '+dt.toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'});};
-  return`<div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div class="sec" style="margin:0;">Últimos movimientos</div>
-    <button class="btn btn-out btn-sm" onclick="loadAll()">↺ Actualizar</button>
-  </div>
-  <div class="card" style="padding:4px 18px;">
-    ${A.hist.map(m=>`<div class="hrow">
-      <span class="htag ${m.movement_type==='ingreso'?'htin':'htout'}">${m.movement_type==='ingreso'?'+':'−'}</span>
-      <div class="hinfo"><div class="hinm">${tname(m.plate_type_id)}</div><div class="hipos">${m.position_id}</div></div>
-      <span class="hqty">${m.quantity}</span>
-      <span class="hdate">${fd(m.created_at)}</span>
-    </div>`).join('')}
-  </div>
-  </div>`;
+  if(!S.hist.length) return `<div class="empty"><div class="eico">🕰</div><p>Sin movimientos</p></div>`;
+  let h=`<div class="card">`;
+  for(const m of S.hist){
+    const nm=tname(m.plate_type_id);
+    const d=new Date(m.created_at);
+    const ds=`${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    h+=`<div class="hrow">
+      <span class="htag ${m.movement_type==='ingreso'?'htin':'htout'}">${m.movement_type==='ingreso'?'IN':'OUT'}</span>
+      <div class="hinfo">
+        <div class="hinm">${esc(nm)}</div>
+        <div class="hipos">${esc(m.position_id)}</div>
+      </div>
+      <div class="hqty">${m.movement_type==='ingreso'?'+':'−'}${m.quantity}</div>
+      <div class="hdate">${ds}</div>
+    </div>`;
+  }
+  h+=`</div>`;
+  return h;
 }
 
-// ═══════════════════════════════════════════════
-//  HANDLERS
-// ═══════════════════════════════════════════════
-function initFmtBtns(){
-  ['A','B','X'].forEach(f=>{const el=document.getElementById('fb'+f);if(el)el.className='fmtb'+(A.selFmt===f?' on-'+f:'');});
+// ═══════════════ CONFIG ═══════════════
+function openConfig(){
+  const body=document.getElementById('config-body');
+  let h='';
+  for(const p of [...S.positions].sort((a,b)=>a.id.localeCompare(b.id))){
+    h+=`<div class="pos-cfg-row">
+      <span class="pos-cfg-id">${esc(p.id)}</span>
+      <input class="pos-cfg-input" type="number" min="1" value="${p.capacity}"
+        data-pos="${esc(p.id)}" oninput="S.cfgEdits[this.dataset.pos]=+this.value">
+      <span style="font-family:monospace;font-size:10px;color:#666;">cap</span>
+    </div>`;
+  }
+  body.innerHTML=h;
+  document.getElementById('modal-config').style.display='flex';
 }
 
-window.selFmt=function(f){A.selFmt=f;initFmtBtns();};
-window.SV=function(v){A.view=v;A.msg=null;A.prev=null;A.sr=null;render();};
+function closeConfig(){document.getElementById('modal-config').style.display='none';S.cfgEdits={};}
 
-window.doAddType=async function(){
-  const n=document.getElementById('ntn')?.value?.trim();
-  if(!n){A.msg={text:'Ingresá un nombre.',t:'err'};render();return;}
-  A.loading=true;render();
+async function saveConfig(){
+  const entries=Object.entries(S.cfgEdits);
+  if(!entries.length){closeConfig();return;}
   try{
-    await api('POST','/api/types',{name:n,format:A.selFmt});
+    for(const [posId,capacity] of entries){
+      await api('PUT','/api/config',{posId,capacity});
+    }
     await loadAll();
-    A.msg={text:`✓ Tipo "${n}" (Formato ${A.selFmt} · ${fmtDim(A.selFmt)}) agregado.`,t:'ok'};
-    A.view='ingresar';
-  }catch(e){A.msg={text:'Error: '+e.message,t:'err'};}
-  A.loading=false;render();
-};
+    closeConfig();
+    showMsg('Capacidades guardadas','ok');
+  }catch(e){showMsg(e.message,'err');}
+}
 
-window.doPrevIn=function(){
-  const tid=parseInt(document.getElementById('inTid')?.value);
-  const qty=parseInt(document.getElementById('inQty')?.value);
-  if(!tid||!qty||qty<1){A.msg={text:'Seleccioná tipo e ingresá cantidad válida.',t:'err'};render();return;}
-  const{assigns,overflow}=autoAssign(tid,qty);
-  if(!assigns.length&&overflow>0){A.msg={text:'Sin espacio disponible para ese formato.',t:'err'};render();return;}
-  A.prev={type:'in',tid,qty,assigns,overflow};A.msg=null;render();
-  setTimeout(()=>{const c=document.getElementById('content');if(c)c.scrollTop=9999;},60);
-};
+// ═══════════════ LABELS ═══════════════
+function openLabels(){
+  if(!S.labelsData||!S.labelsData.length) return;
+  const body=document.getElementById('labels-body');
+  body.innerHTML='';
+  for(const item of S.labelsData){
+    for(let i=0;i<item.qty;i++){
+      const wrap=document.createElement('div');
+      wrap.className='label-card';
+      const qrDiv=document.createElement('div');
+      qrDiv.className='label-qr';
+      wrap.appendChild(qrDiv);
+      const nm=document.createElement('div');
+      nm.className='label-name';
+      nm.textContent=item.name.toUpperCase();
+      wrap.appendChild(nm);
+      const sku=document.createElement('div');
+      sku.className='label-sku';
+      sku.textContent=item.sku||'';
+      wrap.appendChild(sku);
+      body.appendChild(wrap);
+      if(item.sku){
+        new QRCode(qrDiv,{text:item.sku,width:70,height:70,colorDark:'#000000',colorLight:'#ffffff'});
+      }
+    }
+  }
+  document.getElementById('modal-labels').style.display='flex';
+}
 
-window.doConfIn=async function(){
-  const p=A.prev;if(!p)return;
-  A.loading=true;render();
-  try{
-    await api('POST','/api/ingreso',{tid:p.tid,assigns:p.assigns.map(a=>({posId:a.pos.id,qty:a.qty}))});
-    await loadAll();
-    A.msg={text:`✓ ${p.qty-p.overflow} placas de "${tname(p.tid)}" ingresadas en ${p.assigns.length} posición(es).`,t:'ok'};
-    A.prev=null;
-  }catch(e){A.msg={text:'Error guardando: '+e.message,t:'err'};}
-  A.loading=false;render();
-};
+function closeLabels(){document.getElementById('modal-labels').style.display='none';}
 
-window.doSearch=function(){
-  const tid=parseInt(document.getElementById('sTid')?.value);
-  if(!tid){A.msg={text:'Seleccioná un tipo.',t:'err'};render();return;}
-  A.sr=tid;A.msg=null;render();
-};
+function printLabels(){
+  // Force print media
+  window.print();
+}
 
-window.doPrevOut=function(){
-  const tid=parseInt(document.getElementById('bTid')?.value);
-  const qty=parseInt(document.getElementById('bQty')?.value);
-  if(!tid||!qty||qty<1){A.msg={text:'Seleccioná tipo e ingresá cantidad.',t:'err'};render();return;}
-  const{assigns,shortfall}=autoWithdraw(tid,qty);
-  A.prev={type:'out',tid,qty,assigns,shortfall};A.msg=null;render();
-  setTimeout(()=>{const c=document.getElementById('content');if(c)c.scrollTop=9999;},60);
-};
-
-window.doConfOut=async function(){
-  const p=A.prev;if(!p)return;
-  A.loading=true;render();
-  try{
-    await api('POST','/api/baja',{tid:p.tid,assigns:p.assigns.map(a=>({posId:a.pos.id,qty:a.qty,remaining:a.remaining}))});
-    await loadAll();
-    A.msg={text:`✓ ${p.qty} placas de "${tname(p.tid)}" dadas de baja.`,t:'ok'};
-    A.prev=null;
-  }catch(e){A.msg={text:'Error guardando: '+e.message,t:'err'};}
-  A.loading=false;render();
-};
-
-window.loadAll=loadAll;
-
-// ═══════════════════════════════════════════════
-//  BOOT
-// ═══════════════════════════════════════════════
+// ═══════════════ INIT ═══════════════
 loadAll();
 </script>
 </body>
