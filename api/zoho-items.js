@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
   if (!q || q.trim().length < 2) return res.status(400).json({ error: 'Query muy corta.' });
   try {
     const token = await getToken();
-    const url = `https://books.zoho.com/api/v3/items?organization_id=${ORG_ID}&search_text=${encodeURIComponent(q.trim())}&per_page=25`;
+    const url = `https://inventory.zoho.com/api/v1/items?organization_id=${ORG_ID}&search_text=${encodeURIComponent(q.trim())}&per_page=25`;
     const r = await fetch(url, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const data = await r.json();
     const items = (data.items || []).map(i => ({ item_name: i.name, sku: i.sku || '' }));
