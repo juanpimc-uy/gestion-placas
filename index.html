@@ -47,7 +47,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-seri
 /* FORMS */
 .fg{margin-bottom:12px;}
 label.fl{font-family:monospace;font-size:10px;letter-spacing:.1em;color:#888;text-transform:uppercase;display:block;margin-bottom:6px;}
-input,select{width:100%;height:50px;border:1.5px solid #2a2a2a;border-radius:10px;padding:0 14px;font-size:16px;font-family:inherit;background:#161616;color:#e0e0e0;-webkit-appearance:none;appearance:none;outline:none;}
+input,select{width:100%;height:50px;border:1.5px solid #2a2a2a;border-radius:10px;padding:0 14px;font-size:16px;font-family:inherit;background:#161616;color:#e0e0e0;-webkit-appearance:none;appearance:none;outline:none;direction:ltr;text-align:left;}
 input:focus,select:focus{border-color:#FFD600;box-shadow:0 0 0 3px rgba(255,214,0,.1);}
 input::placeholder{color:#444;}
 textarea{width:100%;border:1.5px solid #2a2a2a;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;background:#161616;color:#e0e0e0;outline:none;resize:none;}
@@ -599,7 +599,7 @@ async function buscarOC(){
   const num=raw.padStart(5,'0');
   showMsg('Buscando…','ok');
   try{
-    const d=await api('GET',`https://maderable-produccion.vercel.app/api/zoho-oc?num=${encodeURIComponent(num)}`);
+    const d=await api('GET',`/api/zoho-oc?num=${encodeURIComponent(num)}`);
     S.ocData=d;
     S.ocItems=d.line_items.map(li=>({
       item_name:li.item_name, sku:li.sku,
@@ -644,7 +644,7 @@ function vInArt(){
   let h=`<div class="card">
     <div class="card-title">Buscar artículo en Zoho</div>
     <div class="fg">
-      <input id="art-input" type="text" placeholder="Nombre o SKU…" value="${esc(S.artQ)}"
+      <input id="art-input" type="text" dir="ltr" placeholder="Nombre o SKU…" value="${esc(S.artQ)}"
         oninput="artSearch(this.value)">
     </div>`;
 
@@ -700,7 +700,7 @@ function artSearch(val){
   render(); // show "buscando" state
   S.artTimer=setTimeout(async()=>{
     try{
-      const d=await api('GET',`https://maderable-produccion.vercel.app/api/zoho-items?q=${encodeURIComponent(val)}`);
+      const d=await api('GET',`/api/zoho-items?q=${encodeURIComponent(val)}`);
       S.artResults=d.items||[];
     }catch(e){S.artResults=[];}
     render();
@@ -769,7 +769,7 @@ function vSalida(){
   let h=`<div class="card">
     <div class="card-title">Buscar artículo para retirar</div>
     <div class="fg">
-      <input type="text" placeholder="Nombre o SKU…" value="${esc(S.salidaQ)}"
+      <input type="text" dir="ltr" placeholder="Nombre o SKU…" value="${esc(S.salidaQ)}"
         oninput="salidaSearch(this.value)">
     </div>`;
   if(S.salidaResults.length){
@@ -811,7 +811,7 @@ function salidaSearch(val){
   if(!val||val.length<2){S.salidaResults=[];render();return;}
   S.salidaTimer=setTimeout(async()=>{
     try{
-      const d=await api('GET',`https://maderable-produccion.vercel.app/api/zoho-items?q=${encodeURIComponent(val)}`);
+      const d=await api('GET',`/api/zoho-items?q=${encodeURIComponent(val)}`);
       S.salidaResults=d.items||[];
     }catch(e){S.salidaResults=[];}
     render();
