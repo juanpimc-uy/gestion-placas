@@ -1,5 +1,3 @@
-const ORG_ID = '650251363';
-
 async function getToken() {
   const params = new URLSearchParams({
     grant_type: 'refresh_token',
@@ -21,18 +19,17 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
   let { num } = req.query;
   if (!num) return res.status(400).json({ error: 'Falta número de OC.' });
-  // Accept bare number or full OC-XXXXX
   num = num.trim();
   const ocNum = num.startsWith('OC-') ? num : `OC-${num}`;
+  const org_id = process.env.ZOHO_ORG_ID || '650251363';
   try {
     const token = await getToken();
-    const url = `https://books.zoho.com/api/v3/purchaseorders?organization_id=${ORG_ID}&purchaseorder_number=${encodeURIComponent(ocNum)}`;
+    const url = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${org_id}&purchaseorder_number=${encodeURIComponent(ocNum)}`;
     const r = await fetch(url, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const data = await r.json();
     const orders = data.purchaseorders || [];
     if (!orders.length) return res.status(404).json({ error: `No se encontró ${ocNum}` });
-    // Fetch full detail
-    const detailUrl = `https://books.zoho.com/api/v3/purchaseorders/${orders[0].purchaseorder_id}?organization_id=${ORG_ID}`;
+    const detailUrl = `https://www.zohoapis.com/books/v3/purchaseorders/${orders[0].purchaseorder_id}?organization_id=${org_id}`;
     const dr = await fetch(detailUrl, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const detail = await dr.json();
     const po = detail.purchaseorder || {};
@@ -43,6 +40,6 @@ module.exports = async function handler(req, res) {
     }));
     res.json({ oc_number: ocNum, line_items });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: e.message, stack: e.stack });
   }
 };

@@ -1,5 +1,3 @@
-const ORG_ID = '650251363';
-
 async function getToken() {
   const params = new URLSearchParams({
     grant_type: 'refresh_token',
@@ -21,9 +19,10 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
   const { q } = req.query;
   if (!q || q.trim().length < 2) return res.status(400).json({ error: 'Query muy corta.' });
+  const org_id = process.env.ZOHO_ORG_ID || '650251363';
   try {
     const token = await getToken();
-    const url = `https://inventory.zoho.com/api/v1/items?organization_id=${ORG_ID}&search_text=${encodeURIComponent(q.trim())}&per_page=25`;
+    const url = `https://www.zohoapis.com/inventory/v1/items?organization_id=${org_id}&search_text=${encodeURIComponent(q.trim())}&per_page=25`;
     const r = await fetch(url, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const data = await r.json();
     const items = (data.items || []).map(i => ({ item_name: i.name, sku: i.sku || '' }));
