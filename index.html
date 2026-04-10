@@ -594,8 +594,9 @@ function vInOC(){
 }
 
 async function buscarOC(){
-  const num=S.ocNum.trim();
-  if(!num){showMsg('Ingresa un número de OC','err');return;}
+  const raw=S.ocNum.trim().replace(/^OC-/i,'');
+  if(!raw){showMsg('Ingresa un número de OC','err');return;}
+  const num=raw.padStart(5,'0');
   showMsg('Buscando…','ok');
   try{
     const d=await api('GET',`/api/zoho-oc?num=${encodeURIComponent(num)}`);
