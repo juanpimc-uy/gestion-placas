@@ -25,6 +25,7 @@ module.exports = async function handler(req, res) {
     const url = `https://www.zohoapis.com/inventory/v1/items?organization_id=${org_id}&search_text=${encodeURIComponent(q.trim())}&per_page=25`;
     const r = await fetch(url, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const data = await r.json();
+    console.log('Zoho Inventory response:', JSON.stringify(data));
     const items = (data.items || []).map(i => ({ item_name: i.name, sku: i.sku || '' }));
     res.json({ items });
   } catch (e) {
