@@ -295,8 +295,9 @@ const S = {
 
   // Ingreso
   inTab:'oc',
-  ocNum:'', ocData:null, ocPrev:null,
-  artQ:'', artTimer:null, artResults:[], artSel:null, artQty:'1', artFormat:'A', artPrev:null,
+  ocNum:'', ocData:null,
+  ocItems:[], // [{item_name,sku,quantity,include,qty,posId}]
+  artQ:'', artTimer:null, artResults:[], artSel:null, artQty:'1', artPosId:'',
 
   // Buscar
   bQ:'', bSel:null,
@@ -393,7 +394,7 @@ function autoWithdraw(typeId, qty){
 function nav(v){
   S.view=v;
   S.msg=null;
-  if(v==='ingreso'){S.ocData=null;S.ocPrev=null;S.artPrev=null;S.artSel=null;S.artResults=[];}
+  if(v==='ingreso'){S.ocData=null;S.ocItems=[];S.artSel=null;S.artResults=[];S.artQ='';S.artPosId='';}
   if(v==='salida'){S.salidaOrder=null;}
   render();
 }
@@ -430,9 +431,13 @@ function render(){
 }
 
 function afterRender(){
-  if(S.view==='ingreso'){
+  if(S.view==='ingreso' && S.inTab==='oc'){
     const oi=document.getElementById('oc-input');
-    if(oi && !S.ocData) oi.focus();
+    if(oi && !S.ocItems.length) oi.focus();
+  }
+  if(S.view==='ingreso' && S.inTab==='art'){
+    const ai=document.getElementById('art-input');
+    if(ai && !S.artSel) ai.focus();
   }
 }
 
@@ -514,36 +519,76 @@ function vIngreso(){
   return h;
 }
 
-function setTab(t){S.inTab=t;S.ocData=null;S.ocPrev=null;S.artPrev=null;render();}
+function setTab(t){S.inTab=t;S.ocData=null;S.ocItems=[];S.artSel=null;S.artResults=[];S.artQ='';S.artPosId='';render();}
 
-// --- Tab OC ---
+// helper: position <select> options
+function posOptions(selectedId){
+  return S.positions
+    .slice().sort((a,b)=>a.id.localeCompare(b.id))
+    .map(p=>{
+      const used=posUsed(p);
+      const free=p.capacity-used;
+      const label=`${p.id}  —  ${used}/${p.capacity}  (${free} libre)`;
+      return `<option value="${esc(p.id)}" ${selectedId===p.id?'selected':''}>${label}</option>`;
+    }).join('');
+}
+
+// ── TAB OC ──────────────────────────────────────
 function vInOC(){
-  if(S.ocPrev) return vOCConfirm();
   let h=`<div class="card">
     <div class="card-title">Número de OC</div>
     <div class="fg" style="display:flex;gap:8px;">
-      <input id="oc-input" type="number" placeholder="05430" value="${esc(S.ocNum)}"
+      <input id="oc-input" type="text" placeholder="05430" value="${esc(S.ocNum)}"
         oninput="S.ocNum=this.value"
         onkeydown="if(event.key==='Enter')buscarOC()"
-        style="flex:1;">
-      <button class="btn btn-y btn-sm" onclick="buscarOC()" style="white-space:nowrap;">Buscar</button>
+        style="flex:1;font-family:monospace;letter-spacing:.06em;">
+      <button class="btn btn-y btn-sm" onclick="buscarOC()" style="white-space:nowrap;width:auto;padding:0 16px;">Buscar</button>
     </div>
   </div>`;
-  if(S.ocData){
-    h+=`<div class="card"><div class="card-title">Artículos de ${esc(S.ocData.oc_number)}</div>`;
-    S.ocData.line_items.forEach((li,i)=>{
-      h+=`<div class="oc-item">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div><div class="oc-nm">${esc(li.item_name)}</div><div class="oc-sku">${esc(li.sku)}</div></div>
-          <div class="oc-qty">${li.quantity}</div>
+
+  if(S.ocItems.length){
+    h+=`<div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;">
+        <span>Artículos — ${esc(S.ocData.oc_number)}</span>
+        <span style="color:#555;font-size:10px;">${S.ocItems.filter(x=>x.include).length} seleccionados</span>
+      </div>`;
+
+    S.ocItems.forEach((item,i)=>{
+      h+=`<div class="oc-item" style="opacity:${item.include?1:.45};">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <input type="checkbox" ${item.include?'checked':''} style="width:18px;height:18px;margin-top:3px;accent-color:#FFD600;flex-shrink:0;"
+            onchange="S.ocItems[${i}].include=this.checked;render()">
+          <div style="flex:1;">
+            <div class="oc-nm">${esc(item.item_name)}</div>
+            <div class="oc-sku">${esc(item.sku)}</div>
+          </div>
+          <div class="oc-qty">${item.quantity}</div>
         </div>
-        <div class="oc-fmt">
-          <button class="fmt-btn ${li.format==='A'?'on':''}" onclick="setOCFmt(${i},'A')">A</button>
-          <button class="fmt-btn ${li.format==='B'?'on':''}" onclick="setOCFmt(${i},'B')">B</button>
-        </div>
+        ${item.include?`
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <div style="flex:0 0 90px;">
+            <label class="fl">Cantidad</label>
+            <input type="number" min="1" max="${item.quantity}" value="${item.qty}"
+              style="height:40px;font-size:14px;"
+              oninput="S.ocItems[${i}].qty=Math.min(+this.value,${item.quantity});this.value=S.ocItems[${i}].qty">
+          </div>
+          <div style="flex:1;">
+            <label class="fl">Posición</label>
+            <select style="height:40px;font-size:13px;font-family:monospace;"
+              onchange="S.ocItems[${i}].posId=this.value">
+              <option value="">— Seleccionar posición —</option>
+              ${posOptions(item.posId)}
+            </select>
+          </div>
+        </div>`:''}
       </div>`;
     });
-    h+=`<button class="btn btn-y" style="margin-top:8px;" onclick="previewOC()">Ver asignación</button></div>`;
+
+    const anySelected=S.ocItems.some(x=>x.include);
+    if(anySelected){
+      h+=`<button class="btn btn-y" style="margin-top:10px;" onclick="confirmOC()">Confirmar ingreso</button>`;
+    }
+    h+=`</div>`;
   }
   return h;
 }
@@ -551,111 +596,107 @@ function vInOC(){
 async function buscarOC(){
   const num=S.ocNum.trim();
   if(!num){showMsg('Ingresa un número de OC','err');return;}
+  showMsg('Buscando…','ok');
   try{
-    showMsg('Buscando OC…','ok');
     const d=await api('GET',`/api/zoho-oc?num=${encodeURIComponent(num)}`);
-    d.line_items=d.line_items.map(li=>({...li,format:'A'}));
-    S.ocData=d; S.msg=null; render();
+    S.ocData=d;
+    S.ocItems=d.line_items.map(li=>({
+      item_name:li.item_name, sku:li.sku,
+      quantity:li.quantity,
+      include:true,
+      qty:li.quantity,
+      posId:''
+    }));
+    S.msg=null; render();
   }catch(e){showMsg(e.message,'err');}
 }
 
-function setOCFmt(i,fmt){S.ocData.line_items[i].format=fmt;render();}
-
-async function previewOC(){
-  if(!S.ocData) return;
-  // Resolve or create types for each line item
-  const items=[];
-  for(const li of S.ocData.line_items){
-    let t=S.types.find(x=>x.sku===li.sku||x.name===li.item_name);
-    if(!t){
-      try{
-        t=await api('POST','/api/types',{name:li.item_name,sku:li.sku,format:li.format});
-        S.types.push(t);
-      }catch(e){showMsg('Error creando tipo: '+e.message,'err');return;}
-    }
-    const {assigns,overflow}=autoAssign(t.id,li.quantity,li.format||t.format);
-    items.push({...li,type_id:t.id,assigns,overflow});
-  }
-  S.ocPrev=items; render();
-}
-
-function vOCConfirm(){
-  let h=`<div class="card"><div class="card-title">Confirmar ingreso OC ${esc(S.ocData.oc_number)}</div>`;
-  for(const item of S.ocPrev){
-    h+=`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #252525;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-        <div><div class="sname">${esc(item.item_name)}</div><div class="ssku">${esc(item.sku)}</div></div>
-        <div class="sqty">${item.quantity}</div>
-      </div>`;
-    for(const a of item.assigns){
-      h+=`<div class="arow ain"><span class="apos">${esc(a.posId)}</span><span class="aqty">+${a.qty}</span></div>`;
-    }
-    if(item.overflow>0) h+=`<div class="arow awrn"><span>Sin posición</span><span class="aqty">${item.overflow}</span></div>`;
-    h+=`</div>`;
-  }
-  h+=`<div style="display:flex;gap:8px;margin-top:4px;">
-    <button class="btn btn-dk" onclick="S.ocPrev=null;render()">Volver</button>
-    <button class="btn btn-y" onclick="confirmOC()">Confirmar</button>
-  </div></div>`;
-  return h;
-}
-
 async function confirmOC(){
+  const selected=S.ocItems.filter(x=>x.include);
+  if(!selected.length){showMsg('Seleccioná al menos un artículo','err');return;}
+  for(const item of selected){
+    if(!item.posId){showMsg(`Seleccioná posición para: ${item.item_name}`,'err');return;}
+    if(!item.qty||item.qty<1){showMsg(`Cantidad inválida en: ${item.item_name}`,'err');return;}
+  }
   try{
-    for(const item of S.ocPrev){
-      if(!item.assigns.length) continue;
-      await api('POST','/api/ingreso',{tid:item.type_id,assigns:item.assigns});
+    const labelsData=[];
+    for(const item of selected){
+      // Ensure type exists
+      let t=S.types.find(x=>x.sku===item.sku||x.name===item.item_name);
+      if(!t){
+        t=await api('POST','/api/types',{name:item.item_name,sku:item.sku,format:'A'});
+        S.types.push(t);
+      }
+      await api('POST','/api/ingreso',{tid:t.id,assigns:[{posId:item.posId,qty:item.qty}]});
+      labelsData.push({name:item.item_name,sku:item.sku,qty:item.qty});
     }
-    // Build labels data
-    S.labelsData=S.ocPrev.map(item=>({name:item.item_name,sku:item.sku,qty:item.assigns.reduce((n,a)=>n+a.qty,0)}));
-    S.ocData=null; S.ocPrev=null; S.ocNum='';
+    S.labelsData=labelsData;
+    S.ocData=null; S.ocItems=[]; S.ocNum='';
     await loadAll();
     showMsg('Ingreso registrado','ok');
     openLabels();
   }catch(e){showMsg(e.message,'err');}
 }
 
-// --- Tab Artículo ---
+// ── TAB ARTÍCULO ─────────────────────────────────
 function vInArt(){
-  if(S.artPrev) return vArtConfirm();
   let h=`<div class="card">
-    <div class="card-title">Buscar artículo</div>
+    <div class="card-title">Buscar artículo en Zoho</div>
     <div class="fg">
       <input id="art-input" type="text" placeholder="Nombre o SKU…" value="${esc(S.artQ)}"
         oninput="artSearch(this.value)">
     </div>`;
-  if(S.artResults.length){
-    h+=`<div style="margin-bottom:8px;">`;
+
+  if(S.artQ.length>=2 && !S.artResults.length && !S.artSel){
+    h+=`<div style="font-family:monospace;font-size:11px;color:#555;padding:8px 0;">Buscando…</div>`;
+  }
+
+  if(S.artResults.length && !S.artSel){
     for(const r of S.artResults){
-      const sel=S.artSel&&S.artSel.sku===r.sku&&S.artSel.item_name===r.item_name;
-      h+=`<div class="res-item ${sel?'sel':''}" onclick="selArt(${JSON.stringify(r).replace(/"/g,'&quot;')})">
+      h+=`<div class="res-item" onclick="selArt(${JSON.stringify(r).replace(/"/g,'&quot;')})">
         <div class="res-nm">${esc(r.item_name)}</div>
         <div class="res-sku">${esc(r.sku)}</div>
       </div>`;
     }
-    h+=`</div>`;
   }
+
   if(S.artSel){
     h+=`<div class="dhr"></div>
-    <div class="sec">${esc(S.artSel.item_name)}</div>
-    <div class="fg"><label class="fl">Cantidad</label>
-      <input type="number" min="1" value="${esc(S.artQty)}" oninput="S.artQty=this.value">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div>
+        <div class="sname">${esc(S.artSel.item_name)}</div>
+        <div class="ssku">${esc(S.artSel.sku)}</div>
+      </div>
+      <button class="btn btn-sm btn-dk" onclick="S.artSel=null;S.artResults=[];render()">Cambiar</button>
     </div>
-    <div class="fg"><label class="fl">Formato</label>
-    <div class="oc-fmt">
-      <button class="fmt-btn ${S.artFormat==='A'?'on':''}" onclick="S.artFormat='A';render()">A</button>
-      <button class="fmt-btn ${S.artFormat==='B'?'on':''}" onclick="S.artFormat='B';render()">B</button>
-    </div></div>
-    <button class="btn btn-y" onclick="previewArt()">Ver asignación</button>`;
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div style="flex:0 0 100px;">
+        <label class="fl">Cantidad</label>
+        <input type="number" min="1" value="${esc(S.artQty)}"
+          style="height:44px;"
+          oninput="S.artQty=this.value">
+      </div>
+      <div style="flex:1;">
+        <label class="fl">Posición</label>
+        <select style="height:44px;font-size:13px;font-family:monospace;"
+          onchange="S.artPosId=this.value">
+          <option value="">— Seleccionar posición —</option>
+          ${posOptions(S.artPosId)}
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-y" onclick="confirmArt()">Confirmar ingreso</button>`;
   }
+
   h+=`</div>`;
   return h;
 }
 
 function artSearch(val){
-  S.artQ=val;
+  S.artQ=val; S.artSel=null;
   if(S.artTimer) clearTimeout(S.artTimer);
   if(!val||val.length<2){S.artResults=[];render();return;}
+  render(); // show "buscando" state
   S.artTimer=setTimeout(async()=>{
     try{
       const d=await api('GET',`/api/zoho-items?q=${encodeURIComponent(val)}`);
@@ -665,47 +706,22 @@ function artSearch(val){
   },400);
 }
 
-function selArt(r){S.artSel=r;render();}
-
-async function previewArt(){
-  const qty=parseInt(S.artQty);
-  if(!S.artSel||!qty||qty<1){showMsg('Completa los datos','err');return;}
-  let t=S.types.find(x=>x.sku===S.artSel.sku||x.name===S.artSel.item_name);
-  if(!t){
-    try{
-      t=await api('POST','/api/types',{name:S.artSel.item_name,sku:S.artSel.sku,format:S.artFormat});
-      S.types.push(t);
-    }catch(e){showMsg('Error creando tipo: '+e.message,'err');return;}
-  }
-  const {assigns,overflow}=autoAssign(t.id,qty,S.artFormat||t.format);
-  S.artPrev={type_id:t.id,name:S.artSel.item_name,sku:S.artSel.sku,qty,assigns,overflow};
-  render();
-}
-
-function vArtConfirm(){
-  const p=S.artPrev;
-  let h=`<div class="card"><div class="card-title">Confirmar ingreso</div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
-      <div><div class="sname">${esc(p.name)}</div><div class="ssku">${esc(p.sku)}</div></div>
-      <div class="sqty">${p.qty}</div>
-    </div>`;
-  for(const a of p.assigns){
-    h+=`<div class="arow ain"><span class="apos">${esc(a.posId)}</span><span class="aqty">+${a.qty}</span></div>`;
-  }
-  if(p.overflow>0) h+=`<div class="arow awrn"><span>Sin posición para</span><span class="aqty">${p.overflow}</span></div>`;
-  h+=`<div style="display:flex;gap:8px;margin-top:10px;">
-    <button class="btn btn-dk" onclick="S.artPrev=null;render()">Volver</button>
-    <button class="btn btn-y" onclick="confirmArt()">Confirmar</button>
-  </div></div>`;
-  return h;
-}
+function selArt(r){S.artSel=r;S.artResults=[];S.artQ=r.item_name;S.artPosId='';render();}
 
 async function confirmArt(){
-  const p=S.artPrev;
+  const qty=parseInt(S.artQty);
+  if(!S.artSel){showMsg('Seleccioná un artículo','err');return;}
+  if(!qty||qty<1){showMsg('Ingresá una cantidad válida','err');return;}
+  if(!S.artPosId){showMsg('Seleccioná una posición','err');return;}
   try{
-    await api('POST','/api/ingreso',{tid:p.type_id,assigns:p.assigns});
-    S.labelsData=[{name:p.name,sku:p.sku,qty:p.assigns.reduce((n,a)=>n+a.qty,0)}];
-    S.artPrev=null; S.artSel=null; S.artQ=''; S.artResults=[];
+    let t=S.types.find(x=>x.sku===S.artSel.sku||x.name===S.artSel.item_name);
+    if(!t){
+      t=await api('POST','/api/types',{name:S.artSel.item_name,sku:S.artSel.sku,format:'A'});
+      S.types.push(t);
+    }
+    await api('POST','/api/ingreso',{tid:t.id,assigns:[{posId:S.artPosId,qty}]});
+    S.labelsData=[{name:S.artSel.item_name,sku:S.artSel.sku,qty}];
+    S.artSel=null; S.artQ=''; S.artResults=[]; S.artQty='1'; S.artPosId='';
     await loadAll();
     showMsg('Ingreso registrado','ok');
     openLabels();
