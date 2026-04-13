@@ -296,7 +296,7 @@ const S = {
   // Ingreso
   inTab:'oc',
   ocNum:'', ocData:null,
-  ocItems:[], // [{item_name,sku,quantity,include,qty,posId}]
+  ocPlan:null, // [{item_name,sku,qty,posId,scanned}]
   artQ:'', artTimer:null, artResults:[], artSel:null, artQty:'1', artPosId:'',
 
   // Buscar
@@ -394,7 +394,7 @@ function autoWithdraw(typeId, qty){
 function nav(v){
   S.view=v;
   S.msg=null;
-  if(v==='ingreso'){S.ocData=null;S.ocItems=[];S.artSel=null;S.artResults=[];S.artQ='';S.artPosId='';}
+  if(v==='ingreso'){S.ocData=null;S.ocPlan=null;S.artSel=null;S.artResults=[];S.artQ='';S.artPosId='';}
   if(v==='salida'){S.salidaOrder=null;}
   render();
 }
@@ -546,52 +546,40 @@ function vInOC(){
     </div>
   </div>`;
 
-  if(S.ocItems.length){
+  if(S.ocPlan && S.ocPlan.length){
+    const allDone=S.ocPlan.every(r=>r.scanned);
     h+=`<div class="card">
-      <div class="card-title" style="display:flex;justify-content:space-between;">
-        <span>Artículos — ${esc(S.ocData.oc_number)}</span>
-        <span style="color:#555;font-size:10px;">${S.ocItems.filter(x=>x.include).length} seleccionados</span>
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Dónde guardar — ${esc(S.ocData.oc_number)}</span>
+        <button class="btn btn-sm btn-dk" onclick="S.ocPlan=null;render()">← Volver</button>
       </div>`;
-
-    S.ocItems.forEach((item,i)=>{
-      h+=`<div class="oc-item" style="opacity:${item.include?1:.45};">
-        <div style="display:flex;align-items:flex-start;gap:10px;">
-          <input type="checkbox" ${item.include?'checked':''} style="width:18px;height:18px;margin-top:3px;accent-color:#FFD600;flex-shrink:0;"
-            onchange="S.ocItems[${i}].include=this.checked;render()">
-          <div style="flex:1;">
-            <div class="oc-nm">${esc(item.item_name)}</div>
-            <div class="oc-sku">${esc(item.sku)}</div>
+    for(let i=0;i<S.ocPlan.length;i++){
+      const r=S.ocPlan[i];
+      h+=`<div class="scan-item ${r.scanned?'done':'pending'}" style="margin-bottom:8px;">
+        <div class="scan-check">${r.scanned?'✓':'○'}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:#e0e0e0;">${esc(r.item_name)}</div>
+          <div style="font-family:monospace;font-size:11px;color:#888;margin-top:2px;">
+            <span style="color:#FFD600;font-size:13px;font-weight:800;">${esc(r.posId)}</span>
+            · ${r.qty} ud
           </div>
-          <div class="oc-qty">${item.quantity}</div>
+          ${r.sku?`<div style="font-family:monospace;font-size:10px;color:#555;margin-top:2px;">SKU: ${esc(r.sku)}</div>`:''}
         </div>
-        ${item.include?`
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <div style="flex:0 0 90px;">
-            <label class="fl">Cantidad</label>
-            <input type="number" min="1" max="${item.quantity}" value="${item.qty}"
-              style="height:40px;font-size:14px;"
-              oninput="S.ocItems[${i}].qty=Math.min(+this.value,${item.quantity});this.value=S.ocItems[${i}].qty">
-          </div>
-          <div style="flex:1;">
-            <label class="fl">Posición</label>
-            <select style="height:40px;font-size:13px;font-family:monospace;"
-              onchange="S.ocItems[${i}].posId=this.value">
-              <option value="">— Seleccionar posición —</option>
-              ${posOptions(item.posId)}
-            </select>
-          </div>
-        </div>`:''}
+        ${!r.scanned?`<button class="btn btn-sm btn-dk" onclick="ocScan(${i},'${esc(r.sku||r.item_name)}')">📷 QR</button>`:''}
       </div>`;
-    });
-
-    const anySelected=S.ocItems.some(x=>x.include);
-    if(anySelected){
-      h+=`<button class="btn btn-y" style="margin-top:10px;" onclick="confirmOC()">Confirmar ingreso</button>`;
+    }
+    if(allDone){
+      h+=`<button class="btn btn-grn" style="margin-top:10px;" onclick="confirmOC()">✓ Confirmar ingreso</button>`;
+    } else {
+      const done=S.ocPlan.filter(r=>r.scanned).length;
+      h+=`<div style="font-family:monospace;font-size:11px;color:#666;text-align:center;margin-top:8px;">${done}/${S.ocPlan.length} confirmados</div>`;
+      h+=`<button class="btn btn-y" style="margin-top:10px;" onclick="confirmOC()">Confirmar sin escanear</button>`;
     }
     h+=`</div>`;
   }
   return h;
 }
+
 
 async function buscarOC(){
   const raw=S.ocNum.trim().replace(/^OC-/i,'').replace(/\D/g,'');
@@ -612,27 +600,42 @@ async function buscarOC(){
   }catch(e){showMsg(e.message,'err');}
 }
 
+function ocScan(idx, expected){
+  document.getElementById('modal-scan').style.display='flex';
+  setTimeout(()=>{
+    qrScanner=new Html5Qrcode('qr-reader');
+    qrScanner.start({facingMode:'environment'},{fps:10,qrbox:200},(text)=>{
+      if(text===expected||text.includes(expected)){
+        S.ocPlan[idx].scanned=true;
+        closeScan(); render();
+      }
+    },(err)=>{}).catch(e=>console.error(e));
+  },300);
+}
+
 async function confirmOC(){
-  const selected=S.ocItems.filter(x=>x.include);
-  if(!selected.length){showMsg('Seleccioná al menos un artículo','err');return;}
-  for(const item of selected){
-    if(!item.posId){showMsg(`Seleccioná posición para: ${item.item_name}`,'err');return;}
-    if(!item.qty||item.qty<1){showMsg(`Cantidad inválida en: ${item.item_name}`,'err');return;}
-  }
+  if(!S.ocPlan||!S.ocPlan.length){showMsg('Sin artículos para ingresar','err');return;}
   try{
     const labelsData=[];
-    for(const item of selected){
-      // Ensure type exists
-      let t=S.types.find(x=>x.sku===item.sku||x.name===item.item_name);
+    // Agrupar por artículo
+    const byName={};
+    for(const row of S.ocPlan){
+      const key=row.sku||row.item_name;
+      if(!byName[key]) byName[key]={item_name:row.item_name,sku:row.sku,assigns:[],total:0};
+      byName[key].assigns.push({posId:row.posId,qty:row.qty});
+      byName[key].total+=row.qty;
+    }
+    for(const [key,grp] of Object.entries(byName)){
+      let t=S.types.find(x=>x.sku===grp.sku||x.name===grp.item_name);
       if(!t){
-        t=await api('POST','/api/types',{name:item.item_name,sku:item.sku,format:'A'});
+        t=await api('POST','/api/types',{name:grp.item_name,sku:grp.sku,format:'A'});
         S.types.push(t);
       }
-      await api('POST','/api/ingreso',{tid:t.id,assigns:[{posId:item.posId,qty:item.qty}]});
-      labelsData.push({name:item.item_name,sku:item.sku,qty:item.qty});
+      await api('POST','/api/ingreso',{tid:t.id,assigns:grp.assigns});
+      labelsData.push({name:grp.item_name,sku:grp.sku,qty:grp.total});
     }
     S.labelsData=labelsData;
-    S.ocData=null; S.ocItems=[]; S.ocNum='';
+    S.ocData=null; S.ocPlan=null; S.ocNum='';
     await loadAll();
     showMsg('Ingreso registrado','ok');
     openLabels();
