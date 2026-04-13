@@ -26,34 +26,30 @@ export default async function handler(req, res) {
   try {
     const token = await getToken();
 
-    // 1) Buscar por número para obtener el ID
-    const listUrl = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&purchaseorder_number=${encodeURIComponent("OC-" + numero.replace(/^OC-/i, ""))}`;
-    const listRes = await fetch(listUrl, {
-      headers: { Authorization: `Zoho-oauthtoken ${token}` },
-    });
+    const listUrl = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&purchaseorder_number=OC-${numero.replace(/^OC-/i,'')}`;
+    const listRes = await fetch(listUrl, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const listData = await listRes.json();
 
-    if (!listData.purchaseorders || !listData.purchaseorders.length) {
-      return res.status(404).json({ error: `OC ${numero} no encontrada` });
+    if (!listData.purchaseorders?.length) {
+      return res.status(404).json({ error: `OC no encontrada` });
     }
 
     const poId = listData.purchaseorders[0].purchaseorder_id;
     const poNumber = listData.purchaseorders[0].purchaseorder_number;
 
-    // 2) Traer el PO completo con line_items
     const detailUrl = `https://www.zohoapis.com/books/v3/purchaseorders/${poId}?organization_id=${orgId}`;
-    const detailRes = await fetch(detailUrl, {
-      headers: { Authorization: `Zoho-oauthtoken ${token}` },
-    });
+    const detailRes = await fetch(detailUrl, { headers: { Authorization: `Zoho-oauthtoken ${token}` } });
     const detailData = await detailRes.json();
     const po = detailData.purchaseorder;
 
+    // DEBUG: devolver línea cruda para ver campos reales
     return res.status(200).json({
       oc_number: poNumber,
+      debug_raw_line: po.line_items?.[0] || null,
       line_items: (po.line_items || []).map(li => ({
         item_name: li.name || li.item_name || li.description || '',
-        sku:       li.sku  || '',
-        quantity:  li.quantity || 0,
+        sku: li.sku || li.item_id || '',
+        quantity: li.quantity || 0,
       })),
     });
 
