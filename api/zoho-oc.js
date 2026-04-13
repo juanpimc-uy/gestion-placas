@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     const token = await getToken();
 
     // 1) Buscar por número para obtener el ID
-    const listUrl = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&purchaseorder_number=${encodeURIComponent(numero)}`;
+    const listUrl = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&purchaseorder_number=${encodeURIComponent("OC-" + numero.replace(/^OC-/i, ""))}`;
     const listRes = await fetch(listUrl, {
       headers: { Authorization: `Zoho-oauthtoken ${token}` },
     });
