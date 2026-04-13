@@ -303,6 +303,7 @@ const S = {
   bQ:'', bSel:null,
 
   // Salida
+  salidaTab:'art', salidaSONum:'',
   salidaItems:[], salidaQ:'', salidaTimer:null, salidaResults:[], salidaOrder:null, salidaSort:'obra',
   salidaScanned:{},
 
@@ -395,7 +396,7 @@ function nav(v){
   S.view=v;
   S.msg=null;
   if(v==='ingreso'){S.ocData=null;S.ocPlan=null;S.artSel=null;S.artResults=[];S.artQ='';S.artPosId='';}
-  if(v==='salida'){S.salidaOrder=null;}
+  if(v==='salida'){S.salidaOrder=null;S.salidaItems=[];S.salidaResults=[];S.salidaQ='';}
   render();
 }
 
@@ -433,7 +434,7 @@ function render(){
 function afterRender(){
   if(S.view==='ingreso' && S.inTab==='oc'){
     const oi=document.getElementById('oc-input');
-    if(oi && !S.ocItems.length) oi.focus();
+    if(oi && !(S.ocPlan&&S.ocPlan.length)) oi.focus();
   }
   if(S.view==='ingreso' && S.inTab==='art'){
     const ai=document.getElementById('art-input');
@@ -647,7 +648,7 @@ function vInArt(){
   let h=`<div class="card">
     <div class="card-title">Buscar artículo en Zoho</div>
     <div class="fg">
-      <input id="art-input" type="text" dir="ltr" placeholder="Nombre o SKU…" value="${esc(S.artQ)}"
+      <input id="art-input" type="text" placeholder="Nombre o SKU…" style="direction:ltr;unicode-bidi:plaintext;" value="${esc(S.artQ)}"
         oninput="artSearch(this.value)">
     </div>`;
 
@@ -773,7 +774,7 @@ function vSalida(){
     <div class="card-title">Buscar artículo para retirar</div>
     <div class="fg">
       <input type="text" dir="ltr" placeholder="Nombre o SKU…" value="${esc(S.salidaQ)}"
-        oninput="salidaSearch(this.value)">
+        oninput="salidaSearch(this.value)" style="direction:ltr;unicode-bidi:plaintext;">
     </div>`;
   if(S.salidaResults.length){
     for(const r of S.salidaResults){
