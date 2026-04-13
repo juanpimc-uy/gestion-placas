@@ -23,8 +23,8 @@ export default async function handler(req, res) {
   const orgId = process.env.ZOHO_ORG_ID || '650251363';
   try {
     const token = await getToken();
-    let url = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&sort_column=date&sort_order=D`;
-    if (numero) url += `&purchaseorder_number=${encodeURIComponent(numero)}`;
+    let url = `https://www.zohoapis.com/books/v3/salesorders?organization_id=${orgId}&sort_column=date&sort_order=D`;
+    if (numero) url += `&salesorder_number=${encodeURIComponent(numero)}`;
     const zohoRes = await fetch(url, {
       headers: { Authorization: `Zoho-oauthtoken ${token}` },
     });
