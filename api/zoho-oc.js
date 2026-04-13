@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       oc_number: poNumber,
       line_items: (po.line_items || []).map(li => ({
-        item_name: li.name || li.item_name || '',
+        item_name: li.name || li.item_name || li.description || '',
         sku:       li.sku  || '',
         quantity:  li.quantity || 0,
       })),
