@@ -599,7 +599,7 @@ async function buscarOC(){
   const num=raw.padStart(5,'0');
   showMsg('Buscando…','ok');
   try{
-    const d=await api('GET',`/api/zoho-oc?num=${encodeURIComponent(num)}`);
+    const d=await api('GET',`/api/zoho-oc?numero=${encodeURIComponent(num)}`);
     S.ocData=d;
     S.ocItems=d.line_items.map(li=>({
       item_name:li.item_name, sku:li.sku,

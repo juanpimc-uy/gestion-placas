@@ -19,17 +19,44 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
   const { numero } = req.query;
   const orgId = process.env.ZOHO_ORG_ID || '650251363';
+
   try {
     const token = await getToken();
-    let url = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&sort_column=date&sort_order=D`;
-    if (numero) url += `&purchaseorder_number=${encodeURIComponent(numero)}`;
-    const zohoRes = await fetch(url, {
+
+    // 1) Buscar por número para obtener el ID
+    const listUrl = `https://www.zohoapis.com/books/v3/purchaseorders?organization_id=${orgId}&purchaseorder_number=${encodeURIComponent(numero)}`;
+    const listRes = await fetch(listUrl, {
       headers: { Authorization: `Zoho-oauthtoken ${token}` },
     });
-    const data = await zohoRes.json();
-    return res.status(200).json(data);
+    const listData = await listRes.json();
+
+    if (!listData.purchaseorders || !listData.purchaseorders.length) {
+      return res.status(404).json({ error: `OC ${numero} no encontrada` });
+    }
+
+    const poId = listData.purchaseorders[0].purchaseorder_id;
+    const poNumber = listData.purchaseorders[0].purchaseorder_number;
+
+    // 2) Traer el PO completo con line_items
+    const detailUrl = `https://www.zohoapis.com/books/v3/purchaseorders/${poId}?organization_id=${orgId}`;
+    const detailRes = await fetch(detailUrl, {
+      headers: { Authorization: `Zoho-oauthtoken ${token}` },
+    });
+    const detailData = await detailRes.json();
+    const po = detailData.purchaseorder;
+
+    return res.status(200).json({
+      oc_number: poNumber,
+      line_items: (po.line_items || []).map(li => ({
+        item_name: li.name || li.item_name || '',
+        sku:       li.sku  || '',
+        quantity:  li.quantity || 0,
+      })),
+    });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
